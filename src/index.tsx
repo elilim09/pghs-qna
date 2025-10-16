@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import './index.css';
 import App from './App';
+import theme from './theme';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -9,7 +11,10 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <App />
+    <ThemeProvider theme={theme}>
+      <CssBaseline enableColorScheme />
+      <App />
+    </ThemeProvider>
   </React.StrictMode>
 );
 
