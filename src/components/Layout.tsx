@@ -77,7 +77,7 @@ const Layout = () => {
         </Box>
         <Box component="footer" sx={{ py: 4, textAlign: 'center', color: 'text.secondary', pb: 10 }}>
           <Typography variant="caption" component="p">
-            © {new Date().getFullYear()} 판교고등학교 입학설명회. 제공 정보는 학교 공식 자료를 기반으로 작성되었습니다.
+            © {new Date().getFullYear()} 코드 크래프터. 제공되는 정보는 학교 공식 자료에 기반하였습니다.
           </Typography>
         </Box>
         <Box
