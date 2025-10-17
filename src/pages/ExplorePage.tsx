@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useState } from 'react';
+import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Chip, Collapse, Fade, Stack, Typography } from '@mui/material';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import FolderSpecialRoundedIcon from '@mui/icons-material/FolderSpecialRounded';
@@ -8,6 +8,8 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import GlassCard from '../components/GlassCard';
 import BottomSearchBar from '../components/BottomSearchBar';
 import knowledgeBase from '../data/knowledgeBase';
+import { useOutletContext } from 'react-router-dom';
+import type { LayoutOutletContext } from '../components/Layout';
 
 const iconMap: Record<string, ReactNode> = {
   admissions: <QuizRoundedIcon fontSize="inherit" />,
@@ -17,9 +19,30 @@ const iconMap: Record<string, ReactNode> = {
 };
 
 const ExplorePage = () => {
+  const { setFloatingInput } = useOutletContext<LayoutOutletContext>();
   const [expandedCategory, setExpandedCategory] = useState<string>('admissions');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTag, setActiveTag] = useState<string>('');
+
+  const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  }, []);
+
+  const floatingInput = useMemo(
+    () => (
+      <BottomSearchBar
+        value={searchTerm}
+        onChange={handleSearchChange}
+        placeholder="검색어를 입력하거나 태그를 눌러 정보를 찾아보세요"
+      />
+    ),
+    [handleSearchChange, searchTerm]
+  );
+
+  useEffect(() => {
+    setFloatingInput(floatingInput);
+    return () => setFloatingInput(null);
+  }, [floatingInput, setFloatingInput]);
 
   const filteredCategories = knowledgeBase.map((category) => {
     const matchesSearch = (text: string) =>
@@ -43,7 +66,7 @@ const ExplorePage = () => {
   }, []);
 
   return (
-    <Stack spacing={3} sx={{ flex: 1, pb: 20 }}>
+    <Stack spacing={3} sx={{ flex: 1, pb: 16 }}>
       <GlassCard>
         <Stack spacing={1.5}>
           <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 2 }}>
@@ -159,12 +182,7 @@ const ExplorePage = () => {
         </Fade>
       ))}
 
-      <BottomSearchBar
-        value={searchTerm}
-        onChange={(event) => setSearchTerm(event.target.value)}
-        placeholder="검색어를 입력하거나 태그를 눌러 정보를 찾아보세요"
-      />
-      <Box sx={{ height: 160 }} />
+      <Box sx={{ height: 120 }} />
     </Stack>
   );
 };

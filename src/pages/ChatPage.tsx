@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import knowledgeBase from '../data/knowledgeBase';
 import BottomChatInput from '../components/BottomChatInput';
+import { useOutletContext } from 'react-router-dom';
+import type { LayoutOutletContext } from '../components/Layout';
 
 interface Message {
   id: string;
@@ -24,6 +26,7 @@ const demoAssistantReply = (prompt: string) => {
 };
 
 const ChatPage = () => {
+  const { setFloatingInput } = useOutletContext<LayoutOutletContext>();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -47,7 +50,7 @@ const ChatPage = () => {
 
   const canSend = input.trim().length > 0;
 
-  const handleSend = () => {
+  const handleSend = useCallback(() => {
     if (!canSend) return;
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -63,10 +66,32 @@ const ChatPage = () => {
     };
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setInput('');
-  };
+  }, [canSend, input]);
+
+  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setInput(event.target.value);
+  }, []);
+
+  const floatingInput = useMemo(
+    () => (
+      <BottomChatInput
+        value={input}
+        onChange={handleChange}
+        onSend={handleSend}
+        disabled={!canSend}
+        placeholder="질문을 입력해 주세요"
+      />
+    ),
+    [canSend, handleChange, handleSend, input]
+  );
+
+  useEffect(() => {
+    setFloatingInput(floatingInput);
+    return () => setFloatingInput(null);
+  }, [floatingInput, setFloatingInput]);
 
   return (
-    <Stack spacing={3} sx={{ flex: 1, pb: 20 }}>
+    <Stack spacing={3} sx={{ flex: 1, pb: 16 }}>
       <Box
         ref={scrollContainerRef}
         sx={{
@@ -128,14 +153,7 @@ const ChatPage = () => {
           );
         })}
       </Box>
-      <BottomChatInput
-        value={input}
-        onChange={(event) => setInput(event.target.value)}
-        onSend={handleSend}
-        disabled={!canSend}
-        placeholder="질문을 입력해 주세요"
-      />
-      <Box sx={{ height: 160 }} />
+      <Box sx={{ height: 120 }} />
     </Stack>
   );
 };
