@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
@@ -72,12 +72,26 @@ const ChatPage = () => {
     setInput(event.target.value);
   }, []);
 
+  const floatingInput = useMemo(
+    () => (
+      <BottomChatInput
+        value={input}
+        onChange={handleChange}
+        onSend={handleSend}
+        disabled={!canSend}
+        placeholder="질문을 입력해 주세요"
+      />
+    ),
+    [canSend, handleChange, handleSend, input]
+  );
+
   useEffect(() => {
-    setFloatingInput(null);
-  }, [setFloatingInput]);
+    setFloatingInput(floatingInput);
+    return () => setFloatingInput(null);
+  }, [floatingInput, setFloatingInput]);
 
   return (
-    <Stack spacing={2.5} sx={{ flex: 1, minHeight: 0, pb: 10 }}>
+    <Stack spacing={2.5} sx={{ flex: 1, minHeight: 0, pb: 18 }}>
       <Box
         ref={scrollContainerRef}
         sx={{
@@ -90,6 +104,7 @@ const ChatPage = () => {
           gap: 2,
           px: { xs: 0.5, sm: 1 },
           py: 1,
+          pb: 6,
         }}
       >
         {messages.map((message) => {
@@ -136,13 +151,6 @@ const ChatPage = () => {
           );
         })}
       </Box>
-      <BottomChatInput
-        value={input}
-        onChange={handleChange}
-        onSend={handleSend}
-        disabled={!canSend}
-        placeholder="질문을 입력해 주세요"
-      />
     </Stack>
   );
 };
