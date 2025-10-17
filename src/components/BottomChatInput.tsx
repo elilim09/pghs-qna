@@ -15,9 +15,11 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
-      const nativeIsComposing =
-        'isComposing' in event.nativeEvent ? (event.nativeEvent as { isComposing?: boolean }).isComposing === true : false;
-      if (nativeIsComposing || isComposing) {
+      const nativeEvent = event.nativeEvent as {
+        isComposing?: boolean;
+        keyCode?: number;
+      };
+      if (nativeEvent?.isComposing || nativeEvent?.keyCode === 229 || isComposing) {
         return;
       }
       event.preventDefault();
@@ -46,8 +48,6 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
         value={value}
         onChange={onChange}
         onKeyDown={handleKeyDown}
-        onCompositionStart={() => setIsComposing(true)}
-        onCompositionEnd={() => setIsComposing(false)}
         placeholder={placeholder ?? '질문을 입력하세요'}
         variant="standard"
         multiline
@@ -87,6 +87,10 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
               </IconButton>
             </InputAdornment>
           ),
+        }}
+        inputProps={{
+          onCompositionStart: () => setIsComposing(true),
+          onCompositionEnd: () => setIsComposing(false),
         }}
       />
     </Paper>
