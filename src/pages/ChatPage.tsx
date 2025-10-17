@@ -72,23 +72,24 @@ const ChatPage = () => {
     setInput(event.target.value);
   }, []);
 
-  const floatingInput = useMemo(
-    () => (
-      <BottomChatInput
-        value={input}
-        onChange={handleChange}
-        onSend={handleSend}
-        disabled={!canSend}
-        placeholder="질문을 입력해 주세요"
-      />
-    ),
+  const floatingInputConfig = useMemo(
+    () => ({
+      component: BottomChatInput,
+      props: {
+        value: input,
+        onChange: handleChange,
+        onSend: handleSend,
+        disabled: !canSend,
+        placeholder: '질문을 입력해 주세요',
+      },
+    }),
     [canSend, handleChange, handleSend, input]
   );
 
   useEffect(() => {
-    setFloatingInput(floatingInput);
+    setFloatingInput(floatingInputConfig);
     return () => setFloatingInput(null);
-  }, [floatingInput, setFloatingInput]);
+  }, [floatingInputConfig, setFloatingInput]);
 
   return (
     <Stack spacing={2.5} sx={{ flex: 1, minHeight: 0, pb: 18 }}>

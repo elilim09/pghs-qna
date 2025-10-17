@@ -23,21 +23,22 @@ const ExplorePage = () => {
     setSearchTerm(event.target.value);
   }, []);
 
-  const floatingInput = useMemo(
-    () => (
-      <BottomSearchBar
-        value={searchTerm}
-        onChange={handleSearchChange}
-        placeholder="검색어를 입력하거나 태그를 눌러 정보를 찾아보세요"
-      />
-    ),
+  const floatingInputConfig = useMemo(
+    () => ({
+      component: BottomSearchBar,
+      props: {
+        value: searchTerm,
+        onChange: handleSearchChange,
+        placeholder: '검색어를 입력하거나 태그를 눌러 정보를 찾아보세요',
+      },
+    }),
     [handleSearchChange, searchTerm]
   );
 
   useEffect(() => {
-    setFloatingInput(floatingInput);
+    setFloatingInput(floatingInputConfig);
     return () => setFloatingInput(null);
-  }, [floatingInput, setFloatingInput]);
+  }, [floatingInputConfig, setFloatingInput]);
 
   const filteredCategories = knowledgeBase
     .map((category) => {
