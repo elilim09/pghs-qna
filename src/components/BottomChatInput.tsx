@@ -1,4 +1,4 @@
-import { ChangeEvent, KeyboardEvent, useState } from 'react';
+import { ChangeEvent, KeyboardEvent } from 'react';
 import { IconButton, InputAdornment, Paper, TextField } from '@mui/material';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 
@@ -11,17 +11,20 @@ interface BottomChatInputProps {
 }
 
 const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: BottomChatInputProps) => {
-  const [isComposing, setIsComposing] = useState(false);
+  // isComposing state를 제거합니다.
+  // const [isComposing, setIsComposing] = useState(false);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // Enter 키를 눌렀고, Shift 키는 누르지 않았을 때
     if (event.key === 'Enter' && !event.shiftKey) {
-      const nativeEvent = event.nativeEvent as {
-        isComposing?: boolean;
-        keyCode?: number;
-      };
-      if (nativeEvent?.isComposing || nativeEvent?.keyCode === 229 || isComposing) {
+      // 이벤트 객체의 nativeEvent.isComposing 프로퍼티를 직접 확인하여 IME 조합 중인지 판단합니다.
+      // keyCode 229 체크는 일부 환경을 위한 호환성 코드입니다.
+      if (event.nativeEvent.isComposing || event.keyCode === 229) {
+        // 조합 중이라면 아무것도 하지 않고 함수를 종료합니다.
         return;
       }
+      
+      // 조합 중이 아닐 때만 기본 동작(줄바꿈)을 막고 메시지를 전송합니다.
       event.preventDefault();
       if (!disabled) {
         onSend();
@@ -88,10 +91,11 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
             </InputAdornment>
           ),
         }}
-        inputProps={{
-          onCompositionStart: () => setIsComposing(true),
-          onCompositionEnd: () => setIsComposing(false),
-        }}
+        // isComposing state를 사용하지 않으므로 inputProps도 제거합니다.
+        // inputProps={{
+        //   onCompositionStart: () => setIsComposing(true),
+        //   onCompositionEnd: () => setIsComposing(false),
+        // }}
       />
     </Paper>
   );
