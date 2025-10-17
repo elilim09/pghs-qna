@@ -5,7 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 interface BottomSearchBarProps {
   value: string;
   placeholder?: string;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   TextFieldProps?: TextFieldProps;
 }
 

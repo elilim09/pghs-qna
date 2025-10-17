@@ -68,45 +68,44 @@ const ChatPage = () => {
     setInput('');
   }, [canSend, input]);
 
-  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setInput(event.target.value);
   }, []);
 
-  const floatingInput = useMemo(
-    () => (
-      <BottomChatInput
-        value={input}
-        onChange={handleChange}
-        onSend={handleSend}
-        disabled={!canSend}
-        placeholder="질문을 입력해 주세요"
-      />
-    ),
+  const floatingInputConfig = useMemo(
+    () => ({
+      component: BottomChatInput,
+      props: {
+        value: input,
+        onChange: handleChange,
+        onSend: handleSend,
+        disabled: !canSend,
+        placeholder: '질문을 입력해 주세요',
+      },
+    }),
     [canSend, handleChange, handleSend, input]
   );
 
   useEffect(() => {
-    setFloatingInput(floatingInput);
+    setFloatingInput(floatingInputConfig);
     return () => setFloatingInput(null);
-  }, [floatingInput, setFloatingInput]);
+  }, [floatingInputConfig, setFloatingInput]);
 
   return (
-    <Stack spacing={3} sx={{ flex: 1, pb: 16 }}>
+    <Stack spacing={2.5} sx={{ flex: 1, minHeight: 0, pb: 18 }}>
       <Box
         ref={scrollContainerRef}
         sx={{
           flex: 1,
           minHeight: 360,
-          borderRadius: 2,
-          border: '1px solid #E2E8F0',
-          backgroundColor: '#F8FAFC',
-          boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
-          overflow: 'auto',
+          minWidth: 0,
+          overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 1.5,
-          px: 2,
-          py: 2.5,
+          gap: 2,
+          px: { xs: 0.5, sm: 1 },
+          py: 1,
+          pb: 6,
         }}
       >
         {messages.map((message) => {
@@ -153,7 +152,6 @@ const ChatPage = () => {
           );
         })}
       </Box>
-      <Box sx={{ height: 120 }} />
     </Stack>
   );
 };

@@ -1,8 +1,13 @@
-import { Dispatch, ReactNode, SetStateAction, useState } from 'react';
+import { ComponentType, Dispatch, SetStateAction, useMemo, useState } from 'react';
 import { Box, IconButton, Paper, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+
+type FloatingInputConfig = {
+  component: ComponentType<any>;
+  props?: Record<string, unknown>;
+};
 
 const navItems = [
   { label: '챗봇', path: '/', icon: <AutoAwesomeRoundedIcon /> },
@@ -10,13 +15,19 @@ const navItems = [
 ];
 
 export type LayoutOutletContext = {
-  setFloatingInput: Dispatch<SetStateAction<ReactNode>>;
+  setFloatingInput: Dispatch<SetStateAction<FloatingInputConfig | null>>;
 };
 
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [floatingInput, setFloatingInput] = useState<ReactNode>(null);
+  const [floatingInputConfig, setFloatingInput] = useState<FloatingInputConfig | null>(null);
+
+  const floatingInput = useMemo(() => {
+    if (!floatingInputConfig) return null;
+    const Component = floatingInputConfig.component;
+    return <Component {...(floatingInputConfig.props ?? {})} />;
+  }, [floatingInputConfig]);
 
   return (
     <Box
