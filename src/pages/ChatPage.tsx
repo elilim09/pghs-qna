@@ -94,7 +94,7 @@ const ChatPage = () => {
     return () => {
       setFloatingInput(null);
     };
-  }, []);
+  }, [setFloatingInput]);
 
   return (
     <Stack spacing={2.5} sx={{ flex: 1, minHeight: 0, pb: 18 }}>
