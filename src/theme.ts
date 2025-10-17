@@ -1,55 +1,63 @@
 import { createTheme } from '@mui/material/styles';
 
-const expressiveGradient = 'linear-gradient(135deg, rgba(103,80,164,0.18) 0%, rgba(72,52,124,0.25) 35%, rgba(30,30,60,0.35) 100%)';
-
 const theme = createTheme({
   cssVariables: true,
   palette: {
     mode: 'light',
     primary: {
-      main: '#6750A4',
+      main: '#2563EB',
       contrastText: '#FFFFFF',
     },
     secondary: {
-      main: '#7D5260',
+      main: '#0F172A',
     },
     background: {
-      default: '#f6f2ff',
-      paper: 'rgba(255, 255, 255, 0.72)',
+      default: '#F4F6FA',
+      paper: '#FFFFFF',
     },
     text: {
-      primary: '#1D1B20',
-      secondary: '#4A4458',
+      primary: '#0F172A',
+      secondary: '#475569',
     },
   },
   typography: {
     fontFamily: "'Pretendard Variable', 'Noto Sans KR', 'Roboto', sans-serif",
-    h1: { fontWeight: 600, letterSpacing: '-0.5px' },
-    h2: { fontWeight: 600, letterSpacing: '-0.25px' },
-    h3: { fontWeight: 600 },
-    h4: { fontWeight: 600 },
-    h5: { fontWeight: 600 },
-    h6: { fontWeight: 600 },
-    subtitle1: { fontWeight: 500 },
-    subtitle2: { fontWeight: 500 },
-    button: { borderRadius: 999 },
+    h1: { fontWeight: 700, letterSpacing: '-0.5px' },
+    h2: { fontWeight: 700, letterSpacing: '-0.25px' },
+    h3: { fontWeight: 700 },
+    h4: { fontWeight: 700 },
+    h5: { fontWeight: 700 },
+    h6: { fontWeight: 700 },
+    subtitle1: { fontWeight: 600 },
+    subtitle2: { fontWeight: 600 },
+    body1: { lineHeight: 1.6 },
+    body2: { lineHeight: 1.6 },
   },
   shape: {
-    borderRadius: 28,
+    borderRadius: 20,
   },
   components: {
     MuiCssBaseline: {
       styleOverrides: {
+        '*, *::before, *::after': {
+          boxSizing: 'border-box',
+        },
         body: {
-          backgroundImage: expressiveGradient,
-          backgroundAttachment: 'fixed',
+          margin: 0,
+          minHeight: '100dvh',
+          backgroundColor: '#F4F6FA',
+          color: '#0F172A',
+          fontFamily: "'Pretendard Variable', 'Noto Sans KR', 'Roboto', sans-serif",
+          WebkitFontSmoothing: 'antialiased',
+        },
+        '#root': {
+          minHeight: '100dvh',
         },
         '::-webkit-scrollbar': {
-          width: 8,
-          height: 8,
+          width: 6,
         },
         '::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(103,80,164,0.4)',
+          backgroundColor: 'rgba(148, 163, 184, 0.6)',
           borderRadius: 999,
         },
       },
@@ -60,9 +68,7 @@ const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          backdropFilter: 'blur(24px)',
-          backgroundImage: expressiveGradient,
-          border: '1px solid rgba(255,255,255,0.32)',
+          backgroundImage: 'none',
         },
       },
     },
@@ -71,27 +77,35 @@ const theme = createTheme({
         root: {
           textTransform: 'none',
           borderRadius: 999,
-          paddingLeft: '1.5rem',
-          paddingRight: '1.5rem',
+          fontWeight: 600,
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 28,
-          border: '1px solid rgba(255,255,255,0.28)',
-          backgroundColor: 'rgba(255,255,255,0.65)',
-          backgroundImage: expressiveGradient,
+          borderRadius: 20,
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
+          backgroundImage: 'none',
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(18, 18, 24, 0.45)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.2)',
+          backgroundColor: '#FFFFFF',
+          color: '#0F172A',
+          boxShadow: 'none',
+          borderBottom: '1px solid #E2E8F0',
+        },
+      },
+    },
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          paddingLeft: '1.25rem',
+          paddingRight: '1.25rem',
         },
       },
     },

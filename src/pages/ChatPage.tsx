@@ -1,15 +1,5 @@
-import { useMemo, useState } from 'react';
-import {
-  Avatar,
-  Box,
-  Button,
-  Divider,
-  IconButton,
-  InputAdornment,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { Avatar, Box, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
@@ -52,6 +42,17 @@ const ChatPage = () => {
     },
   ]);
 
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [messages]);
+
   const canSend = input.trim().length > 0;
 
   const handleSend = () => {
@@ -78,106 +79,186 @@ const ChatPage = () => {
     [],
   );
 
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    handleSend();
+  };
+
   return (
-    <Stack spacing={4} sx={{ pb: 12 }}>
+    <Stack spacing={3} sx={{ flex: 1, pb: 6 }}>
       <GlassCard>
-        <Stack spacing={3} direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }}>
-          <Box flex={1}>
-            <Typography variant="overline" sx={{ color: 'primary.light', letterSpacing: 3 }}>
-              Q&A Companion
-            </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 700 }}>
-              판교고 입학 설명회 챗봇 데모
-            </Typography>
-            <Typography variant="body1" sx={{ mt: 1.5, color: 'text.secondary' }}>
-              학교가 제공한 공식 문서를 토대로 학부모님의 질문에 답변할 AI 상담사를 준비하고 있습니다. 현재 페이지에서는 사용자 경험을 먼저 살펴볼 수 있도록 인터페이스만 제공됩니다.
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
-              준비된 정보 하이라이트: {heroHighlight}
-            </Typography>
-          </Box>
+        <Stack spacing={1.5}>
+          <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 2 }}>
+            챗봇 상담 안내
+          </Typography>
+          <Typography variant="h4">AI 상담 미리 체험하기</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            2026 판교고 입학 설명회를 위해 준비 중인 AI 상담 인터페이스입니다. 실제 답변은 곧 적용될 예정이며, 지금은 제공되는 예시를 통해 사용 흐름을 체험할 수 있습니다.
+          </Typography>
           <Box
             sx={{
-              background: 'radial-gradient(circle at top, rgba(255,255,255,0.8), rgba(103,80,164,0.4))',
-              borderRadius: '28px',
-              p: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
+              mt: 1,
+              p: 2,
+              borderRadius: 2,
+              backgroundColor: 'rgba(37, 99, 235, 0.08)',
+              border: '1px solid rgba(37, 99, 235, 0.15)',
             }}
           >
-            <AutoAwesomeRoundedIcon sx={{ fontSize: 48, color: 'primary.main' }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              AI 답변 미리보기
+            <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
+              준비된 정보 요약
             </Typography>
-            <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary' }}>
-              예시 답변은 실제 서비스에서 제공될 내용을 미리 보여주기 위한 것입니다. 곧 실시간 상담이 지원될 예정입니다.
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              {heroHighlight}
             </Typography>
           </Box>
         </Stack>
       </GlassCard>
 
-      <GlassCard>
-        <Stack spacing={3}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            대화 기록
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: 3,
+          border: '1px solid #E2E8F0',
+          backgroundColor: '#FFFFFF',
+          boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          sx={{
+            px: 3,
+            py: 2,
+            borderBottom: '1px solid #E2E8F0',
+            backgroundColor: 'rgba(148, 163, 184, 0.15)',
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            챗봇과의 대화
           </Typography>
-          <Divider flexItem light />
-          <Stack spacing={2} sx={{ maxHeight: { xs: 420, md: 540 }, overflowY: 'auto', pr: 1 }}>
-            {messages.map((message) => {
-              const isUser = message.role === 'user';
-              const isSystem = message.role === 'system';
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            현재는 예시 응답만 제공됩니다. 곧 실시간 상담이 지원됩니다.
+          </Typography>
+        </Box>
+        <Box
+          ref={scrollContainerRef}
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            px: 2,
+            py: 2,
+            backgroundColor: '#F8FAFC',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1.5,
+          }}
+        >
+          {messages.map((message) => {
+            if (message.role === 'system') {
               return (
-                <Stack key={message.id} direction="row" spacing={2} alignItems="flex-start">
-                  <Avatar
-                    sx={{
-                      bgcolor: isUser ? 'secondary.main' : isSystem ? 'rgba(255,255,255,0.45)' : 'primary.main',
-                      color: isSystem ? 'text.primary' : '#fff',
-                      boxShadow: '0 10px 20px rgba(103,80,164,0.2)',
-                    }}
-                  >
-                    {isUser ? <PersonRoundedIcon /> : <AutoAwesomeRoundedIcon />}
-                  </Avatar>
+                <Box
+                  key={message.id}
+                  sx={{
+                    alignSelf: 'center',
+                    textAlign: 'center',
+                    maxWidth: '90%',
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {message.timestamp}
+                  </Typography>
                   <Box
                     sx={{
-                      flex: 1,
-                      backgroundColor: isSystem
-                        ? 'rgba(255,255,255,0.65)'
-                        : isUser
-                        ? 'rgba(125,82,96,0.1)'
-                        : 'rgba(103,80,164,0.12)',
-                      borderRadius: 4,
+                      mt: 0.5,
                       px: 2,
-                      py: 1.5,
-                      border: '1px solid rgba(255,255,255,0.35)',
+                      py: 1,
+                      borderRadius: 999,
+                      backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                      border: '1px dashed rgba(37, 99, 235, 0.4)',
                     }}
                   >
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {message.timestamp}
-                    </Typography>
-                    <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {message.content}
                     </Typography>
                   </Box>
-                </Stack>
+                </Box>
               );
-            })}
-          </Stack>
+            }
+
+            const isUser = message.role === 'user';
+            return (
+              <Stack
+                key={message.id}
+                spacing={0.75}
+                alignItems={isUser ? 'flex-end' : 'flex-start'}
+                sx={{ width: '100%' }}
+              >
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {message.timestamp}
+                </Typography>
+                <Stack
+                  direction={isUser ? 'row-reverse' : 'row'}
+                  spacing={1}
+                  alignItems="flex-end"
+                  sx={{ maxWidth: '92%' }}
+                >
+                  <Avatar
+                    sx={{
+                      bgcolor: isUser ? 'primary.main' : 'rgba(37, 99, 235, 0.15)',
+                      color: isUser ? 'primary.contrastText' : 'primary.main',
+                      width: 36,
+                      height: 36,
+                    }}
+                  >
+                    {isUser ? <PersonRoundedIcon fontSize="small" /> : <AutoAwesomeRoundedIcon fontSize="small" />}
+                  </Avatar>
+                  <Box
+                    sx={{
+                      px: 2,
+                      py: 1.25,
+                      borderRadius: 3,
+                      backgroundColor: isUser ? 'primary.main' : '#FFFFFF',
+                      border: isUser ? 'none' : '1px solid #CBD5F5',
+                      color: isUser ? 'primary.contrastText' : 'text.primary',
+                      boxShadow: isUser ? '0 8px 16px rgba(37, 99, 235, 0.3)' : '0 4px 12px rgba(148, 163, 184, 0.25)',
+                      maxWidth: '100%',
+                      wordBreak: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
+                    <Typography variant="body2">{message.content}</Typography>
+                  </Box>
+                </Stack>
+              </Stack>
+            );
+          })}
+        </Box>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            borderTop: '1px solid #E2E8F0',
+            backgroundColor: '#FFFFFF',
+            px: 2,
+            py: 1.5,
+          }}
+        >
           <TextField
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="궁금한 질문을 입력해 주세요."
+            placeholder="궁금한 내용을 입력해 주세요"
             multiline
             minRows={2}
+            maxRows={4}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
                     aria-label="메시지 보내기"
                     color="primary"
+                    type="submit"
                     disabled={!canSend}
-                    onClick={handleSend}
                   >
                     <SendRoundedIcon />
                   </IconButton>
@@ -185,18 +266,8 @@ const ChatPage = () => {
               ),
             }}
           />
-          <Button
-            onClick={handleSend}
-            variant="contained"
-            size="large"
-            disabled={!canSend}
-            endIcon={<SendRoundedIcon />}
-            sx={{ alignSelf: { xs: 'stretch', md: 'flex-end' }, minWidth: 180 }}
-          >
-            메시지 보내기
-          </Button>
-        </Stack>
-      </GlassCard>
+        </Box>
+      </Box>
     </Stack>
   );
 };
