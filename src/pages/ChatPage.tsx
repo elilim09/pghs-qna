@@ -1,9 +1,9 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Avatar, Box, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material';
-import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import GlassCard from '../components/GlassCard';
+import BottomChatInput from '../components/BottomChatInput';
 import knowledgeBase from '../data/knowledgeBase';
 
 interface Message {
@@ -20,7 +20,7 @@ const demoAssistantReply = (prompt: string) => {
     return `"${matched.question}"에 대한 안내입니다. ${matched.answer} (출처: ${matched.source})`;
   }
   const fallback =
-    '현재는 예시 챗봇 환경입니다. 학교에서 제공한 정보를 기반으로 다양한 질문에 답변할 수 있도록 개발되고 있습니다.';
+    '판교고 공식 자료를 기반으로 관련 항목을 찾아 안내해 드립니다. 궁금한 내용을 구체적으로 남겨주시면 더 정확한 답변을 제공할 수 있어요.';
   return fallback;
 };
 
@@ -30,14 +30,13 @@ const ChatPage = () => {
     {
       id: crypto.randomUUID(),
       role: 'system',
-      content: '판교고 입학 설명회 챗봇입니다. 궁금한 점을 자연스럽게 물어보세요.',
+      content: '판교고 입학 안내 챗봇입니다. 입학 전형, 교육과정, 학교 생활 전반에 대해 자유롭게 질문해 주세요.',
       timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
     },
     {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content:
-        '안녕하세요! 현재는 데모 버전으로 동작 중이에요. 입학, 교육과정, 학교 생활과 관련된 질문을 남겨주시면 준비된 답변 예시를 보여드릴게요.',
+      content: '안녕하세요! 판교고 공식 데이터를 바탕으로 필요한 정보를 찾아 드릴게요. 알고 싶은 내용을 편하게 말씀해 주세요.',
       timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -85,27 +84,27 @@ const ChatPage = () => {
   };
 
   return (
-    <Stack spacing={3} sx={{ flex: 1, pb: 6 }}>
+    <Stack spacing={3} sx={{ flex: 1, pb: 28 }}>
       <GlassCard>
         <Stack spacing={1.5}>
           <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 2 }}>
-            챗봇 상담 안내
+            챗봇 안내
           </Typography>
-          <Typography variant="h4">AI 상담 미리 체험하기</Typography>
+          <Typography variant="h4">AI 상담 챗봇</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            2026 판교고 입학 설명회를 위해 준비 중인 AI 상담 인터페이스입니다. 실제 답변은 곧 적용될 예정이며, 지금은 제공되는 예시를 통해 사용 흐름을 체험할 수 있습니다.
+            판교고에서 공개한 최신 입학·학교 생활 정보를 기반으로 맞춤형 답변을 제공합니다. 궁금한 키워드를 입력하면 준비된 데이터를 바탕으로 안내해 드립니다.
           </Typography>
           <Box
             sx={{
               mt: 1,
               p: 2,
-              borderRadius: 2,
+              borderRadius: 18,
               backgroundColor: 'rgba(37, 99, 235, 0.08)',
               border: '1px solid rgba(37, 99, 235, 0.15)',
             }}
           >
             <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
-              준비된 정보 요약
+              포함된 핵심 정보
             </Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
               {heroHighlight}
@@ -119,7 +118,7 @@ const ChatPage = () => {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          borderRadius: 3,
+          borderRadius: 24,
           border: '1px solid #E2E8F0',
           backgroundColor: '#FFFFFF',
           boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
@@ -135,10 +134,10 @@ const ChatPage = () => {
           }}
         >
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            챗봇과의 대화
+            실시간 상담 기록
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            현재는 예시 응답만 제공됩니다. 곧 실시간 상담이 지원됩니다.
+            질문이 등록되면 판교고 공식 데이터를 바탕으로 즉시 답변이 생성됩니다.
           </Typography>
         </Box>
         <Box
@@ -152,6 +151,7 @@ const ChatPage = () => {
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
+            pb: 6,
           }}
         >
           {messages.map((message) => {
@@ -171,11 +171,11 @@ const ChatPage = () => {
                   <Box
                     sx={{
                       mt: 0.5,
-                      px: 2,
-                      py: 1,
-                      borderRadius: 999,
+                      px: 2.5,
+                      py: 1.25,
+                      borderRadius: 18,
                       backgroundColor: 'rgba(37, 99, 235, 0.08)',
-                      border: '1px dashed rgba(37, 99, 235, 0.4)',
+                      border: '1px dashed rgba(37, 99, 235, 0.3)',
                     }}
                   >
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -215,13 +215,13 @@ const ChatPage = () => {
                   </Avatar>
                   <Box
                     sx={{
-                      px: 2,
-                      py: 1.25,
-                      borderRadius: 3,
+                      px: 2.25,
+                      py: 1.5,
+                      borderRadius: 20,
                       backgroundColor: isUser ? 'primary.main' : '#FFFFFF',
                       border: isUser ? 'none' : '1px solid #CBD5F5',
                       color: isUser ? 'primary.contrastText' : 'text.primary',
-                      boxShadow: isUser ? '0 8px 16px rgba(37, 99, 235, 0.3)' : '0 4px 12px rgba(148, 163, 184, 0.25)',
+                      boxShadow: isUser ? '0 12px 26px rgba(37, 99, 235, 0.32)' : '0 6px 18px rgba(148, 163, 184, 0.25)',
                       maxWidth: '100%',
                       wordBreak: 'break-word',
                       whiteSpace: 'pre-wrap',
@@ -234,40 +234,15 @@ const ChatPage = () => {
             );
           })}
         </Box>
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{
-            borderTop: '1px solid #E2E8F0',
-            backgroundColor: '#FFFFFF',
-            px: 2,
-            py: 1.5,
-          }}
-        >
-          <TextField
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder="궁금한 내용을 입력해 주세요"
-            multiline
-            minRows={2}
-            maxRows={4}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="메시지 보내기"
-                    color="primary"
-                    type="submit"
-                    disabled={!canSend}
-                  >
-                    <SendRoundedIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
       </Box>
+      <BottomChatInput
+        value={input}
+        onChange={(event) => setInput(event.target.value)}
+        onSubmit={handleSubmit}
+        disabled={!canSend}
+        placeholder="질문을 입력하면 가장 관련 있는 답변을 찾아 드립니다"
+      />
+      <Box sx={{ height: 120 }} />
     </Stack>
   );
 };

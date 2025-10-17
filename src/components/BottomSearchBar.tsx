@@ -16,7 +16,7 @@ const BottomSearchBar = ({ value, placeholder, onChange, TextFieldProps: textFie
         position: 'fixed',
         left: '50%',
         transform: 'translateX(-50%)',
-        bottom: { xs: 24, sm: 32 },
+        bottom: { xs: 112, sm: 128 },
         display: 'flex',
         justifyContent: 'center',
         width: '100%',

@@ -2,8 +2,8 @@ import { Box, ButtonBase, Stack, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { label: '챗봇 상담', path: '/' },
-  { label: '정보 탐색', path: '/explore' },
+  { label: '챗봇', path: '/' },
+  { label: '탐색', path: '/explore' },
 ];
 
 const Layout = () => {
@@ -26,7 +26,7 @@ const Layout = () => {
           display: 'flex',
           flexDirection: 'column',
           px: 2,
-          pb: 6,
+          pb: 18,
         }}
       >
         <Box
@@ -51,34 +51,6 @@ const Layout = () => {
                 학부모와 학생을 위한 안내를 한 곳에서 확인해 보세요.
               </Typography>
             </Stack>
-            <Stack direction="row" spacing={1}>
-              {navItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <ButtonBase
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    sx={{
-                      flex: 1,
-                      py: 1.25,
-                      borderRadius: 999,
-                      backgroundColor: isActive ? 'primary.main' : '#FFFFFF',
-                      color: isActive ? 'primary.contrastText' : 'text.secondary',
-                      border: '1px solid',
-                      borderColor: isActive ? 'primary.main' : '#E2E8F0',
-                      boxShadow: isActive ? '0 8px 16px rgba(37, 99, 235, 0.25)' : 'none',
-                      fontWeight: 600,
-                      fontSize: '0.95rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {item.label}
-                  </ButtonBase>
-                );
-              })}
-            </Stack>
           </Stack>
         </Box>
         <Box component="main" sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -88,6 +60,59 @@ const Layout = () => {
           <Typography variant="caption" component="p">
             © {new Date().getFullYear()} 판교고등학교 입학설명회. 제공 정보는 학교 공식 자료를 기반으로 작성되었습니다.
           </Typography>
+        </Box>
+      </Box>
+      <Box
+        component="nav"
+        sx={{
+          position: 'fixed',
+          left: '50%',
+          bottom: 16,
+          transform: 'translateX(-50%)',
+          width: '100%',
+          px: 2,
+          pointerEvents: 'none',
+          zIndex: (theme) => theme.zIndex.appBar,
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: 480,
+            margin: '0 auto',
+            backgroundColor: '#FFFFFF',
+            borderRadius: 24,
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 18px 36px rgba(15, 23, 42, 0.12)',
+            display: 'flex',
+            overflow: 'hidden',
+            pointerEvents: 'auto',
+          }}
+        >
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <ButtonBase
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                sx={{
+                  flex: 1,
+                  py: 1.75,
+                  borderRadius: 0,
+                  backgroundColor: isActive ? 'primary.main' : 'transparent',
+                  color: isActive ? 'primary.contrastText' : 'text.secondary',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s ease, color 0.2s ease',
+                }}
+              >
+                {item.label}
+              </ButtonBase>
+            );
+          })}
         </Box>
       </Box>
     </Box>
