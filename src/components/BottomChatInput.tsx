@@ -19,33 +19,20 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
   };
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{
-        position: 'fixed',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        bottom: 100,
-        width: '100%',
-        maxWidth: 480,
-        px: 2,
-        pointerEvents: 'none',
-        zIndex: (theme) => theme.zIndex.snackbar,
-      }}
-    >
+    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
       <Paper
-        elevation={6}
+        elevation={10}
         sx={{
           pointerEvents: 'auto',
           display: 'flex',
           alignItems: 'center',
           gap: 1.5,
-          px: 1.5,
-          py: 1.25,
-          borderRadius: 14,
+          px: 2,
+          py: 1.4,
+          borderRadius: 999,
           border: '1px solid #CBD5F5',
-          boxShadow: '0 16px 32px rgba(15, 23, 42, 0.12)',
+          boxShadow: '0 24px 44px rgba(15, 23, 42, 0.22)',
+          backgroundColor: '#FFFFFF',
         }}
       >
         <TextField
@@ -62,7 +49,26 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
             sx: { fontSize: '1rem' },
           }}
         />
-        <IconButton type="submit" color="primary" disabled={disabled}>
+        <IconButton
+          type="submit"
+          color="primary"
+          disabled={disabled}
+          sx={{
+            backgroundColor: 'primary.main',
+            color: 'primary.contrastText',
+            boxShadow: '0 10px 20px rgba(37, 99, 235, 0.32)',
+            '&:hover': {
+              backgroundColor: 'primary.dark',
+            },
+            '&.Mui-disabled': {
+              backgroundColor: 'rgba(148, 163, 184, 0.35)',
+              color: 'rgba(255, 255, 255, 0.85)',
+              boxShadow: 'none',
+            },
+            width: 44,
+            height: 44,
+          }}
+        >
           <SendRoundedIcon />
         </IconButton>
       </Paper>

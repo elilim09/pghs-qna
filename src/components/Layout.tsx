@@ -1,14 +1,22 @@
-import { Box, ButtonBase, Stack, Typography } from '@mui/material';
+import { Dispatch, ReactNode, SetStateAction, useState } from 'react';
+import { Box, IconButton, Paper, Stack, Typography } from '@mui/material';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { label: '챗봇', path: '/' },
-  { label: '탐색', path: '/explore' },
+  { label: '챗봇', path: '/', icon: <AutoAwesomeRoundedIcon /> },
+  { label: '탐색', path: '/explore', icon: <TravelExploreRoundedIcon /> },
 ];
+
+export type LayoutOutletContext = {
+  setFloatingInput: Dispatch<SetStateAction<ReactNode>>;
+};
 
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [floatingInput, setFloatingInput] = useState<ReactNode>(null);
 
   return (
     <Box
@@ -54,7 +62,7 @@ const Layout = () => {
           </Stack>
         </Box>
         <Box component="main" sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, pb: 10 }}>
-          <Outlet />
+          <Outlet context={{ setFloatingInput }} />
         </Box>
         <Box component="footer" sx={{ py: 4, textAlign: 'center', color: 'text.secondary', pb: 10 }}>
           <Typography variant="caption" component="p">
@@ -74,33 +82,53 @@ const Layout = () => {
             zIndex: (theme) => theme.zIndex.modal,
           }}
         >
-          <Stack direction="row" spacing={1.5}>
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <ButtonBase
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  sx={{
-                    flex: 1,
-                    py: 1.25,
-                    borderRadius: 12,
-                    backgroundColor: isActive ? 'primary.main' : '#FFFFFF',
-                    color: isActive ? 'primary.contrastText' : 'text.secondary',
-                    border: '1px solid',
-                    borderColor: isActive ? 'primary.main' : '#CBD5F5',
-                    boxShadow: isActive ? '0 8px 18px rgba(37, 99, 235, 0.2)' : '0 2px 8px rgba(15, 23, 42, 0.08)',
-                    fontWeight: 600,
-                    fontSize: '0.95rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {item.label}
-                </ButtonBase>
-              );
-            })}
+          <Stack direction="row" spacing={1.5} alignItems="flex-end">
+            <Paper
+              elevation={8}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1,
+                py: 0.75,
+                borderRadius: 999,
+                backgroundColor: '#FFFFFF',
+                border: '1px solid rgba(148, 163, 184, 0.35)',
+                boxShadow: '0 20px 36px rgba(15, 23, 42, 0.18)',
+                pointerEvents: 'auto',
+              }}
+            >
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <IconButton
+                    key={item.path}
+                    aria-label={item.label}
+                    onClick={() => navigate(item.path)}
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: '50%',
+                      backgroundColor: isActive ? 'primary.main' : 'rgba(37, 99, 235, 0.06)',
+                      color: isActive ? 'primary.contrastText' : 'primary.main',
+                      boxShadow: isActive ? '0 12px 24px rgba(37, 99, 235, 0.35)' : 'none',
+                      border: isActive ? 'none' : '1px solid rgba(37, 99, 235, 0.18)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: isActive ? 'primary.main' : 'rgba(37, 99, 235, 0.16)',
+                      },
+                    }}
+                  >
+                    {item.icon}
+                  </IconButton>
+                );
+              })}
+            </Paper>
+            {floatingInput && (
+              <Box sx={{ flex: 1 }}>
+                {floatingInput}
+              </Box>
+            )}
           </Stack>
         </Box>
       </Box>
