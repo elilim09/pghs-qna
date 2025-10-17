@@ -47,7 +47,7 @@ const ExplorePage = () => {
       <GlassCard>
         <Stack spacing={1.5}>
           <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 2 }}>
-            정보 탐색
+            탐색
           </Typography>
           <Typography variant="h4">카테고리별 핵심 정보</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -59,7 +59,7 @@ const ExplorePage = () => {
               color={activeTag === '' ? 'primary' : 'default'}
               variant={activeTag === '' ? 'filled' : 'outlined'}
               onClick={() => setActiveTag('')}
-              sx={{ borderRadius: 999, fontWeight: 600 }}
+              sx={{ borderRadius: 12, fontWeight: 600 }}
             />
             {tagSet.map((tag) => (
               <Chip
@@ -68,7 +68,7 @@ const ExplorePage = () => {
                 color={activeTag === tag ? 'primary' : 'default'}
                 variant={activeTag === tag ? 'filled' : 'outlined'}
                 onClick={() => setActiveTag((prev) => (prev === tag ? '' : tag))}
-                sx={{ borderRadius: 999, fontWeight: 600 }}
+                sx={{ borderRadius: 12, fontWeight: 600 }}
               />
             ))}
           </Stack>
@@ -112,7 +112,7 @@ const ExplorePage = () => {
                   <Chip
                     label={`${category.items.length}건`}
                     size="small"
-                    sx={{ borderRadius: 999, fontWeight: 600, backgroundColor: 'rgba(37, 99, 235, 0.08)' }}
+                    sx={{ borderRadius: 12, fontWeight: 600, backgroundColor: 'rgba(37, 99, 235, 0.08)' }}
                   />
                   <ExpandMoreRoundedIcon
                     sx={{
@@ -164,7 +164,7 @@ const ExplorePage = () => {
         onChange={(event) => setSearchTerm(event.target.value)}
         placeholder="검색어를 입력하거나 태그를 눌러 정보를 찾아보세요"
       />
-      <Box sx={{ height: 96 }} />
+      <Box sx={{ height: 160 }} />
     </Stack>
   );
 };
