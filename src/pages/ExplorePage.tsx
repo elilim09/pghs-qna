@@ -8,43 +8,85 @@ import knowledgeBase from '../data/knowledgeBase';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
 
+/** ===== 아이콘 매핑(디자인 동일 유지) ===== */
 const iconMap: Record<string, ReactNode> = {
   'school-overview': <QuizRoundedIcon fontSize="inherit" />,
   'learning-roadmap': <SchoolRoundedIcon fontSize="inherit" />,
   'ace-experience': <AutoAwesomeRoundedIcon fontSize="inherit" />,
 };
 
+/** 
+ * 플로팅 영역에 실제로 렌더링될 안전한 검색 입력 래퍼
+ * - 내부 state로 value 관리 (부모에서 value를 내려주지 않음)
+ * - 합성(IME) 이벤트 처리
+ * - 변경 시 부모로 콜백만 올려줌 → 플로팅 재주입 없음
+ */
+function FloatingSearchInput({
+  placeholder,
+  onSearchChange,
+}: {
+  placeholder?: string;
+  onSearchChange: (term: string) => void;
+}) {
+  const [value, setValue] = useState('');
+  const [isComposing, setIsComposing] = useState(false);
+
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      // 합성 중에는 값만 반영 (후처리 금지), 부모 콜백도 함께 올림
+      const v = e.target.value;
+      setValue(v);
+      onSearchChange(v);
+    },
+    [onSearchChange],
+  );
+
+  // IME 합성 이벤트를 확실히 관리
+  const compositionProps = {
+    onCompositionStart: () => setIsComposing(true),
+    onCompositionEnd: () => setIsComposing(false),
+  };
+
+  return (
+    <BottomSearchBar
+      value={value}
+      onChange={handleChange}
+      placeholder={placeholder ?? '검색어를 입력하거나 태그를 눌러 정보를 찾아보세요'}
+      {...compositionProps}
+    />
+  );
+}
+
 const ExplorePage = () => {
   const { setFloatingInput } = useOutletContext<LayoutOutletContext>();
+
+  // 부모는 검색어를 필터링에만 사용. (입력창 표시/관리 X)
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTag, setActiveTag] = useState<string>('');
 
-  const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setSearchTerm(event.target.value);
+  /** 플로팅 입력에서 올라오는 검색어 변경 콜백 */
+  const handleSearchTermFromFloating = useCallback((term: string) => {
+    // 합성 중간값도 그대로 반영 — 트림/후처리는 필터링 단계에서 안전하게 처리
+    setSearchTerm(term);
   }, []);
 
-  const floatingInputConfig = useMemo(
-    () => ({
-      component: BottomSearchBar,
+  /** ⛳️ 핵심: 플로팅 입력을 마운트 시 1회만 주입 (props는 변하지 않는 것만) */
+  useEffect(() => {
+    setFloatingInput({
+      component: FloatingSearchInput,
       props: {
-        value: searchTerm,
-        onChange: handleSearchChange,
+        onSearchChange: handleSearchTermFromFloating,
         placeholder: '검색어를 입력하거나 태그를 눌러 정보를 찾아보세요',
       },
-    }),
-    [handleSearchChange, searchTerm]
-  );
-
-  useEffect(() => {
-    setFloatingInput(floatingInputConfig);
-  }, [floatingInputConfig, setFloatingInput]);
-
-  useEffect(() => {
+    });
     return () => {
       setFloatingInput(null);
     };
-  }, []);
+    // setFloatingInput만 의존. 콜백은 클로저로 안전하게 동작.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setFloatingInput]);
 
+  /** ====== 데이터 필터링(디자인/로직 기존 유지) ====== */
   const filteredCategories = knowledgeBase
     .map((category) => {
       const matchesSearch = (text: string) =>
@@ -53,7 +95,10 @@ const ExplorePage = () => {
       const filteredItems = category.items.filter((item) => {
         const matchesTag = activeTag ? item.tags.includes(activeTag) : true;
         const matchesQuery = searchTerm
-          ? matchesSearch(item.question) || matchesSearch(item.answer) || item.highlights?.some(matchesSearch) || matchesSearch(category.title)
+          ? matchesSearch(item.question) ||
+            matchesSearch(item.answer) ||
+            item.highlights?.some(matchesSearch) ||
+            matchesSearch(category.title)
           : true;
         return matchesTag && matchesQuery;
       });
@@ -64,7 +109,9 @@ const ExplorePage = () => {
 
   const tagSet = useMemo(() => {
     const tags = new Set<string>();
-    knowledgeBase.forEach((category) => category.items.forEach((item) => item.tags.forEach((tag) => tags.add(tag))));
+    knowledgeBase.forEach((category) =>
+      category.items.forEach((item) => item.tags.forEach((tag) => tags.add(tag))),
+    );
     return Array.from(tags);
   }, []);
 
@@ -92,6 +139,7 @@ const ExplorePage = () => {
               검색창과 태그를 활용하면 원하는 정보를 바로 확인할 수 있습니다. 아래 주제들은 학교 공식 문서를 정밀 분석해 정리했습니다.
             </Typography>
           </Box>
+
           <Stack direction="row" flexWrap="wrap" gap={1.2}>
             <Chip
               label="전체"
@@ -148,7 +196,11 @@ const ExplorePage = () => {
               }}
             >
               <Stack spacing={2.5}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  alignItems={{ xs: 'flex-start', sm: 'center' }}
+                >
                   <Box
                     sx={{
                       width: 52,

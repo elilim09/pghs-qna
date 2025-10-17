@@ -1,4 +1,5 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+// src/pages/ChatPage.tsx
+import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
@@ -25,9 +26,59 @@ const demoAssistantReply = (prompt: string) => {
   return fallback;
 };
 
+/**
+ * 플로팅 입력에 실제로 렌더링될 “안전한” 래퍼 컴포넌트.
+ * - value/disabled를 내부 state로 관리 → 부모 re-render와 분리
+ * - 합성(한글) 중에는 전송을 비활성화
+ */
+function FloatingChatInput({
+  onSendToPage,
+  placeholder,
+}: {
+  onSendToPage: (text: string) => void;
+  placeholder?: string;
+}) {
+  const [value, setValue] = useState('');
+  const [isComposing, setIsComposing] = useState(false);
+
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    // 합성 중간값도 그대로 반영만 (후처리는 전송 시점에)
+    setValue(e.target.value);
+  }, []);
+
+  const canSend = value.trim().length > 0 && !isComposing;
+
+  const handleSend = useCallback(() => {
+    if (!canSend) return;
+    const text = value.trim();
+    setValue('');
+    onSendToPage(text);
+  }, [canSend, onSendToPage, value]);
+
+  // 합성 이벤트는 래퍼에서 관리하고, disabled로 전송 차단
+  const compositionProps = {
+    onCompositionStart: () => setIsComposing(true),
+    onCompositionEnd: () => setIsComposing(false),
+  };
+
+  return (
+    <BottomChatInput
+      // 디자인/컴포넌트는 코드1 그대로 사용
+      value={value}
+      onChange={handleChange}
+      onSend={handleSend}
+      disabled={!canSend}
+      placeholder={placeholder ?? '질문을 입력해 주세요'}
+      // 아래 props는 BottomChatInput 내부 TextField로 전파될 수 있음
+      // (BottomChatInput 구현에 따라 무시될 수도 있지만 문제 없음)
+      {...compositionProps}
+    />
+  );
+}
+
 const ChatPage = () => {
   const { setFloatingInput } = useOutletContext<LayoutOutletContext>();
-  const [input, setInput] = useState('');
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: crypto.randomUUID(),
@@ -48,54 +99,44 @@ const ChatPage = () => {
     }
   }, [messages]);
 
-  const canSend = input.trim().length > 0;
+  // 플로팅 입력에서 올라오는 "확정 텍스트"만 처리 (타이핑은 플로팅 컴포넌트 내부 상태로만)
+  const handleSubmitFromFloating = useCallback((text: string) => {
+    const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
-  const handleSend = useCallback(() => {
-    if (!canSend) return;
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: input.trim(),
-      timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+      content: text,
+      timestamp: now,
     };
     const assistantMessage: Message = {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: demoAssistantReply(input.trim()),
-      timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+      content: demoAssistantReply(text),
+      timestamp: now,
     };
-    setMessages((prev) => [...prev, userMessage, assistantMessage]);
-    setInput('');
-  }, [canSend, input]);
 
-  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setInput(event.target.value);
+    setMessages((prev) => [...prev, userMessage, assistantMessage]);
   }, []);
 
-  const floatingInputConfig = useMemo(
-    () => ({
-      component: BottomChatInput,
+  // ⛳️ 핵심: setFloatingInput는 마운트 시 "단 1회"만 호출하고, 변동 없는 props만 넘긴다.
+  useEffect(() => {
+    setFloatingInput({
+      component: FloatingChatInput,
       props: {
-        value: input,
-        onChange: handleChange,
-        onSend: handleSend,
-        disabled: !canSend,
+        onSendToPage: handleSubmitFromFloating,
         placeholder: '질문을 입력해 주세요',
       },
-    }),
-    [canSend, handleChange, handleSend, input]
-  );
-
-  useEffect(() => {
-    setFloatingInput(floatingInputConfig);
-  }, [floatingInputConfig, setFloatingInput]);
-
-  useEffect(() => {
+    });
     return () => {
       setFloatingInput(null);
     };
+    // 의도적으로 의존성에 handleSubmitFromFloating을 넣지 않음(안전한 1회 설정).
+    // handleSubmitFromFloating은 setState 클로저로 안전하게 동작.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setFloatingInput]);
 
+  // ====== 아래는 코드1의 “디자인” 그대로 유지 ======
   return (
     <Stack spacing={2.5} sx={{ flex: 1, minHeight: 0, pb: 18 }}>
       <Box
@@ -125,7 +166,12 @@ const ChatPage = () => {
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 {message.timestamp}
               </Typography>
-              <Stack direction={isUser ? 'row-reverse' : 'row'} spacing={1} alignItems="flex-end" sx={{ maxWidth: '92%' }}>
+              <Stack
+                direction={isUser ? 'row-reverse' : 'row'}
+                spacing={1}
+                alignItems="flex-end"
+                sx={{ maxWidth: '92%' }}
+              >
                 <Avatar
                   sx={{
                     bgcolor: isUser ? 'primary.main' : 'rgba(37, 99, 235, 0.15)',
