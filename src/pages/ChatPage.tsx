@@ -88,8 +88,13 @@ const ChatPage = () => {
 
   useEffect(() => {
     setFloatingInput(floatingInputConfig);
-    return () => setFloatingInput(null);
   }, [floatingInputConfig, setFloatingInput]);
+
+  useEffect(() => {
+    return () => {
+      setFloatingInput(null);
+    };
+  }, []);
 
   return (
     <Stack spacing={2.5} sx={{ flex: 1, minHeight: 0, pb: 18 }}>

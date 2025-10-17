@@ -37,8 +37,13 @@ const ExplorePage = () => {
 
   useEffect(() => {
     setFloatingInput(floatingInputConfig);
-    return () => setFloatingInput(null);
   }, [floatingInputConfig, setFloatingInput]);
+
+  useEffect(() => {
+    return () => {
+      setFloatingInput(null);
+    };
+  }, []);
 
   const filteredCategories = knowledgeBase
     .map((category) => {
