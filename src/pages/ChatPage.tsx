@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
@@ -68,45 +68,28 @@ const ChatPage = () => {
     setInput('');
   }, [canSend, input]);
 
-  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setInput(event.target.value);
   }, []);
 
-  const floatingInput = useMemo(
-    () => (
-      <BottomChatInput
-        value={input}
-        onChange={handleChange}
-        onSend={handleSend}
-        disabled={!canSend}
-        placeholder="질문을 입력해 주세요"
-      />
-    ),
-    [canSend, handleChange, handleSend, input]
-  );
-
   useEffect(() => {
-    setFloatingInput(floatingInput);
-    return () => setFloatingInput(null);
-  }, [floatingInput, setFloatingInput]);
+    setFloatingInput(null);
+  }, [setFloatingInput]);
 
   return (
-    <Stack spacing={3} sx={{ flex: 1, pb: 16 }}>
+    <Stack spacing={2.5} sx={{ flex: 1, minHeight: 0, pb: 10 }}>
       <Box
         ref={scrollContainerRef}
         sx={{
           flex: 1,
           minHeight: 360,
-          borderRadius: 2,
-          border: '1px solid #E2E8F0',
-          backgroundColor: '#F8FAFC',
-          boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
-          overflow: 'auto',
+          minWidth: 0,
+          overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 1.5,
-          px: 2,
-          py: 2.5,
+          gap: 2,
+          px: { xs: 0.5, sm: 1 },
+          py: 1,
         }}
       >
         {messages.map((message) => {
@@ -153,7 +136,13 @@ const ChatPage = () => {
           );
         })}
       </Box>
-      <Box sx={{ height: 120 }} />
+      <BottomChatInput
+        value={input}
+        onChange={handleChange}
+        onSend={handleSend}
+        disabled={!canSend}
+        placeholder="질문을 입력해 주세요"
+      />
     </Stack>
   );
 };

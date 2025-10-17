@@ -1,30 +1,25 @@
 import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Chip, Collapse, Fade, Stack, Typography } from '@mui/material';
-import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
-import FolderSpecialRoundedIcon from '@mui/icons-material/FolderSpecialRounded';
+import { Box, Chip, Divider, Paper, Stack, Typography } from '@mui/material';
 import QuizRoundedIcon from '@mui/icons-material/QuizRounded';
 import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import GlassCard from '../components/GlassCard';
 import BottomSearchBar from '../components/BottomSearchBar';
 import knowledgeBase from '../data/knowledgeBase';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
 
 const iconMap: Record<string, ReactNode> = {
-  admissions: <QuizRoundedIcon fontSize="inherit" />,
-  academics: <SchoolRoundedIcon fontSize="inherit" />,
-  'student-life': <FolderSpecialRoundedIcon fontSize="inherit" />,
-  'ace-program': <AutoAwesomeRoundedIcon fontSize="inherit" />,
+  'school-overview': <QuizRoundedIcon fontSize="inherit" />,
+  'learning-roadmap': <SchoolRoundedIcon fontSize="inherit" />,
+  'ace-experience': <AutoAwesomeRoundedIcon fontSize="inherit" />,
 };
 
 const ExplorePage = () => {
   const { setFloatingInput } = useOutletContext<LayoutOutletContext>();
-  const [expandedCategory, setExpandedCategory] = useState<string>('admissions');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTag, setActiveTag] = useState<string>('');
 
-  const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setSearchTerm(event.target.value);
   }, []);
 
@@ -44,20 +39,22 @@ const ExplorePage = () => {
     return () => setFloatingInput(null);
   }, [floatingInput, setFloatingInput]);
 
-  const filteredCategories = knowledgeBase.map((category) => {
-    const matchesSearch = (text: string) =>
-      text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+  const filteredCategories = knowledgeBase
+    .map((category) => {
+      const matchesSearch = (text: string) =>
+        text.toLowerCase().includes(searchTerm.trim().toLowerCase());
 
-    const filteredItems = category.items.filter((item) => {
-      const matchesTag = activeTag ? item.tags.includes(activeTag) : true;
-      const matchesQuery = searchTerm
-        ? matchesSearch(item.question) || matchesSearch(item.answer) || matchesSearch(category.title)
-        : true;
-      return matchesTag && matchesQuery;
-    });
+      const filteredItems = category.items.filter((item) => {
+        const matchesTag = activeTag ? item.tags.includes(activeTag) : true;
+        const matchesQuery = searchTerm
+          ? matchesSearch(item.question) || matchesSearch(item.answer) || item.highlights?.some(matchesSearch) || matchesSearch(category.title)
+          : true;
+        return matchesTag && matchesQuery;
+      });
 
-    return { ...category, items: filteredItems };
-  });
+      return { ...category, items: filteredItems };
+    })
+    .filter((category) => category.items.length > 0);
 
   const tagSet = useMemo(() => {
     const tags = new Set<string>();
@@ -66,17 +63,30 @@ const ExplorePage = () => {
   }, []);
 
   return (
-    <Stack spacing={3} sx={{ flex: 1, pb: 16 }}>
-      <GlassCard>
-        <Stack spacing={1.5}>
-          <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 2 }}>
-            탐색
-          </Typography>
-          <Typography variant="h4">카테고리별 핵심 정보</Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            관심 있는 항목을 펼치고, 태그 또는 검색 기능을 활용하여 필요한 내용을 빠르게 찾아보세요.
-          </Typography>
-          <Stack direction="row" flexWrap="wrap" gap={1} sx={{ pt: 1 }}>
+    <Stack spacing={3.5} sx={{ flex: 1, pb: 18 }}>
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          border: '1px solid',
+          borderColor: 'divider',
+          background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(15, 23, 42, 0.04))',
+          p: { xs: 3, sm: 4 },
+        }}
+      >
+        <Stack spacing={2.5}>
+          <Box>
+            <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 2, fontWeight: 700 }}>
+              탐색
+            </Typography>
+            <Typography variant="h4" sx={{ mt: 0.5 }}>
+              카테고리별 핵심 정보
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+              검색창과 태그를 활용하면 원하는 정보를 바로 확인할 수 있습니다. 아래 주제들은 학교 공식 문서를 정밀 분석해 정리했습니다.
+            </Typography>
+          </Box>
+          <Stack direction="row" flexWrap="wrap" gap={1.2}>
             <Chip
               label="전체"
               color={activeTag === '' ? 'primary' : 'default'}
@@ -96,32 +106,55 @@ const ExplorePage = () => {
             ))}
           </Stack>
         </Stack>
-      </GlassCard>
+      </Paper>
 
-      {filteredCategories.map((category) => (
-        <Fade in key={category.id}>
-          <Box>
-            <GlassCard>
-              <Stack spacing={2}>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={2}
-                  sx={{ cursor: 'pointer' }}
-                  onClick={() => setExpandedCategory((prev) => (prev === category.id ? '' : category.id))}
-                >
+      {filteredCategories.length === 0 ? (
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 3,
+            border: '1px dashed',
+            borderColor: 'divider',
+            backgroundColor: 'rgba(148, 163, 184, 0.1)',
+            p: { xs: 3, sm: 4 },
+          }}
+        >
+          <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
+            검색 조건에 맞는 자료가 없습니다.
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            다른 태그를 선택하거나 검색어를 줄여 다시 시도해 보세요. 모든 정보는 학교 공식 답변을 바탕으로 구성되어 있습니다.
+          </Typography>
+        </Paper>
+      ) : (
+        <Stack spacing={3}>
+          {filteredCategories.map((category) => (
+            <Paper
+              key={category.id}
+              elevation={0}
+              sx={{
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                backgroundColor: '#FFFFFF',
+                p: { xs: 3, sm: 4 },
+                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)',
+              }}
+            >
+              <Stack spacing={2.5}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
                   <Box
                     sx={{
-                      width: 48,
-                      height: 48,
+                      width: 52,
+                      height: 52,
                       borderRadius: 16,
-                      backgroundColor: 'rgba(37, 99, 235, 0.08)',
-                      border: '1px solid rgba(37, 99, 235, 0.18)',
+                      backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                      border: '1px solid rgba(37, 99, 235, 0.28)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: 'primary.main',
-                      fontSize: 24,
+                      fontSize: 26,
                     }}
                   >
                     {iconMap[category.id] ?? <QuizRoundedIcon fontSize="inherit" />}
@@ -135,54 +168,50 @@ const ExplorePage = () => {
                   <Chip
                     label={`${category.items.length}건`}
                     size="small"
-                    sx={{ borderRadius: 12, fontWeight: 600, backgroundColor: 'rgba(37, 99, 235, 0.08)' }}
-                  />
-                  <ExpandMoreRoundedIcon
-                    sx={{
-                      transition: 'transform 0.3s ease',
-                      transform: expandedCategory === category.id ? 'rotate(180deg)' : 'rotate(0deg)',
-                      color: 'primary.main',
-                    }}
+                    sx={{ borderRadius: 12, fontWeight: 600, backgroundColor: 'rgba(37, 99, 235, 0.1)' }}
                   />
                 </Stack>
-                <Collapse in={expandedCategory === category.id} timeout="auto" unmountOnExit>
-                  <Stack spacing={2} sx={{ pt: 1 }}>
-                    {category.items.length === 0 && (
-                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                        선택한 태그나 검색어에 해당하는 내용이 없습니다. 다른 키워드를 시도해 보세요.
+                <Divider />
+                <Stack spacing={2.5}>
+                  {category.items.map((item) => (
+                    <Box
+                      key={item.question}
+                      sx={{
+                        borderRadius: 2,
+                        border: '1px solid rgba(148, 163, 184, 0.35)',
+                        backgroundColor: 'rgba(248, 250, 252, 0.85)',
+                        p: { xs: 2, sm: 2.5 },
+                      }}
+                    >
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        {item.question}
                       </Typography>
-                    )}
-                    {category.items.map((item) => (
-                      <Box
-                        key={item.question}
-                        sx={{
-                          p: 2,
-                          borderRadius: 2,
-                          backgroundColor: '#F8FAFC',
-                          border: '1px solid #E2E8F0',
-                          boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
-                        }}
-                      >
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                          {item.question}
-                        </Typography>
-                        <Typography variant="body2" sx={{ mt: 1 }}>
-                          {item.answer}
-                        </Typography>
-                        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
-                          출처: {item.source} · 태그: {item.tags.join(', ')}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Stack>
-                </Collapse>
+                      {item.highlights && item.highlights.length > 0 && (
+                        <Stack component="ul" spacing={0.75} sx={{ mt: 1.25, pl: 2.5, color: 'text.secondary' }}>
+                          {item.highlights.map((highlight) => (
+                            <Typography key={highlight} component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
+                              {highlight}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      )}
+                      <Typography variant="body2" sx={{ mt: 1.25, whiteSpace: 'pre-line' }}>
+                        {item.answer}
+                      </Typography>
+                      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 1.5 }}>
+                        {item.tags.map((tag) => (
+                          <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 10 }} />
+                        ))}
+                        <Chip label={item.source} size="small" color="default" sx={{ borderRadius: 10 }} />
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
               </Stack>
-            </GlassCard>
-          </Box>
-        </Fade>
-      ))}
-
-      <Box sx={{ height: 120 }} />
+            </Paper>
+          ))}
+        </Stack>
+      )}
     </Stack>
   );
 };

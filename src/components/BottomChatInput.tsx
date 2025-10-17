@@ -1,25 +1,34 @@
-import { ChangeEvent, FormEvent } from 'react';
+import { ChangeEvent, KeyboardEvent, useState } from 'react';
 import { Box, IconButton, Paper, TextField } from '@mui/material';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 
 interface BottomChatInputProps {
   value: string;
   placeholder?: string;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSend: () => void;
   disabled?: boolean;
 }
 
 const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: BottomChatInputProps) => {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!disabled) {
-      onSend();
+  const [isComposing, setIsComposing] = useState(false);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      const nativeIsComposing =
+        'isComposing' in event.nativeEvent ? (event.nativeEvent as { isComposing?: boolean }).isComposing === true : false;
+      if (nativeIsComposing || isComposing) {
+        return;
+      }
+      event.preventDefault();
+      if (!disabled) {
+        onSend();
+      }
     }
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%' }}>
       <Paper
         elevation={10}
         sx={{
@@ -39,6 +48,9 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
           fullWidth
           value={value}
           onChange={onChange}
+          onKeyDown={handleKeyDown}
+          onCompositionStart={() => setIsComposing(true)}
+          onCompositionEnd={() => setIsComposing(false)}
           placeholder={placeholder ?? '질문을 입력하세요'}
           variant="standard"
           multiline
@@ -50,7 +62,6 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
           }}
         />
         <IconButton
-          type="submit"
           color="primary"
           disabled={disabled}
           sx={{
