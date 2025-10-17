@@ -1,77 +1,108 @@
-import { AppBar, Box, Button, Container, Stack, Toolbar, Typography } from '@mui/material';
-import { Link as RouterLink, Outlet, useLocation } from 'react-router-dom';
+import { Box, ButtonBase, Stack, Typography } from '@mui/material';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { label: '챗봇 상담', path: '/' },
-  { label: '정보 탐색', path: '/explore' },
+  { label: '챗봇', path: '/' },
+  { label: '탐색', path: '/explore' },
 ];
 
 const Layout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
+        backgroundColor: 'background.default',
         display: 'flex',
-        flexDirection: 'column',
-        background: 'radial-gradient(circle at top left, rgba(255,255,255,0.65) 0%, rgba(246,242,255,0.9) 45%, rgba(223,213,255,0.8) 100%)',
+        justifyContent: 'center',
       }}
     >
-      <AppBar position="sticky" color="transparent" elevation={0}>
-        <Toolbar sx={{ justifyContent: 'space-between', py: 2 }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #D0BCFF, #6750A4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#1D1B20',
-                fontWeight: 700,
-              }}
-            >
-              PG
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" sx={{ color: 'rgba(255,255,255,0.72)', textTransform: 'uppercase', letterSpacing: 2 }}>
-                Pangyo High School
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: 480,
+          display: 'flex',
+          flexDirection: 'column',
+          px: 2,
+          pb: 6,
+        }}
+      >
+        <Box
+          component="header"
+          sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: (theme) => theme.zIndex.appBar,
+            backgroundColor: 'background.default',
+            pt: 3,
+            pb: 2,
+            mb: 1,
+          }}
+        >
+          <Stack spacing={1.5}>
+            <Stack spacing={0.5}>
+              <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 2 }}>
+                2026 판교고 입학설명회
               </Typography>
-              <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
-                입학 설명회 QnA 허브
+              <Typography variant="h5">입학 안내 Q&A 허브</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                학부모와 학생을 위한 안내를 한 곳에서 확인해 보세요.
               </Typography>
-            </Box>
+            </Stack>
           </Stack>
-          <Stack direction="row" spacing={2} alignItems="center">
-            {navItems.map((item) => (
-              <Button
-                key={item.path}
-                component={RouterLink}
-                to={item.path}
-                variant={location.pathname === item.path ? 'contained' : 'text'}
-                color={location.pathname === item.path ? 'primary' : 'inherit'}
-                sx={{
-                  fontWeight: location.pathname === item.path ? 600 : 500,
-                  color: location.pathname === item.path ? 'primary.contrastText' : 'rgba(255,255,255,0.72)',
-                  borderRadius: 999,
-                }}
-              >
-                {item.label}
-              </Button>
-            ))}
+        </Box>
+        <Box component="main" sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, pb: 10 }}>
+          <Outlet />
+        </Box>
+        <Box component="footer" sx={{ py: 4, textAlign: 'center', color: 'text.secondary', pb: 10 }}>
+          <Typography variant="caption" component="p">
+            © {new Date().getFullYear()} 판교고등학교 입학설명회. 제공 정보는 학교 공식 자료를 기반으로 작성되었습니다.
+          </Typography>
+        </Box>
+        <Box
+          component="nav"
+          sx={{
+            position: 'fixed',
+            left: '50%',
+            bottom: 24,
+            transform: 'translateX(-50%)',
+            width: '100%',
+            maxWidth: 480,
+            px: 2,
+            zIndex: (theme) => theme.zIndex.modal,
+          }}
+        >
+          <Stack direction="row" spacing={1.5}>
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <ButtonBase
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  sx={{
+                    flex: 1,
+                    py: 1.25,
+                    borderRadius: 12,
+                    backgroundColor: isActive ? 'primary.main' : '#FFFFFF',
+                    color: isActive ? 'primary.contrastText' : 'text.secondary',
+                    border: '1px solid',
+                    borderColor: isActive ? 'primary.main' : '#CBD5F5',
+                    boxShadow: isActive ? '0 8px 18px rgba(37, 99, 235, 0.2)' : '0 2px 8px rgba(15, 23, 42, 0.08)',
+                    fontWeight: 600,
+                    fontSize: '0.95rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {item.label}
+                </ButtonBase>
+              );
+            })}
           </Stack>
-        </Toolbar>
-      </AppBar>
-      <Container component="main" maxWidth="lg" sx={{ flex: 1, width: '100%', py: { xs: 4, md: 6 } }}>
-        <Outlet />
-      </Container>
-      <Box component="footer" sx={{ py: 4, textAlign: 'center', color: 'rgba(29,27,32,0.7)' }}>
-        <Typography variant="body2">
-          © {new Date().getFullYear()} 판교고등학교 입학 설명회 Q&A 허브. 모든 정보는 학교가 제공한 문서를 기반으로 작성되었습니다.
-        </Typography>
+        </Box>
       </Box>
     </Box>
   );

@@ -1,64 +1,59 @@
-"""FastAPI backend stub for the Pangyo High School Q&A project."""
+"""Utility helpers for Firebase Functions HTTP triggers.
+
+This module deliberately keeps only the request helpers that will be reused
+from Cloud Functions, allowing the frontend to call a unified HTTP endpoint.
+"""
 from __future__ import annotations
 
-from datetime import datetime
-from typing import List
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
-from fastapi import FastAPI
-from pydantic import BaseModel
+import os
+import requests
 
-app = FastAPI(
-    title="Pangyo High School Q&A API",
-    description="Placeholder API for future chatbot and knowledge services.",
-    version="0.1.0",
-)
+API_BASE_URL = os.getenv("PGHS_EXTERNAL_API", "https://example.com")
+TIMEOUT_SECONDS = float(os.getenv("PGHS_API_TIMEOUT", "10"))
 
 
-class KnowledgeItem(BaseModel):
-    question: str
-    answer: str
-    tags: List[str]
-    source: str
+@dataclass
+class ChatPayload:
+    """Structured payload for chatbot requests."""
 
-
-class ChatRequest(BaseModel):
+    session_id: str
     message: str
+    locale: str = "ko-KR"
+    metadata: Optional[Dict[str, Any]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "session_id": self.session_id,
+            "message": self.message,
+            "locale": self.locale,
+        }
+        if self.metadata:
+            payload["metadata"] = self.metadata
+        return payload
 
 
-class ChatResponse(BaseModel):
-    reply: str
-    created_at: datetime
+def _request(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Send a JSON request to the configured API endpoint."""
+
+    url = f"{API_BASE_URL.rstrip('/')}/{path.lstrip('/')}"
+    response = requests.post(url, json=payload, timeout=TIMEOUT_SECONDS)
+    response.raise_for_status()
+    return response.json()
 
 
-MOCK_KNOWLEDGE: List[KnowledgeItem] = [
-    KnowledgeItem(
-        question="2025학년도 모집 정원과 학급 구성은 어떻게 되나요?",
-        answer="한 학급당 26명씩 8학급, 총 208명을 모집합니다.",
-        tags=["모집정원", "2025"],
-        source="판교고등학교_QNA.pdf",
-    ),
-]
+def send_chat_request(chat_payload: ChatPayload) -> Dict[str, Any]:
+    """Helper used from Firebase Functions to route chat completions."""
+
+    return _request("chat", chat_payload.to_dict())
 
 
-@app.get("/health", tags=["system"])
-async def health_check() -> dict[str, str]:
-    """Return a simple health check payload."""
-    return {"status": "ok", "service": "pangyo-qna"}
+def send_knowledge_lookup(query: str, *, tags: Optional[list[str]] = None) -> Dict[str, Any]:
+    """Proxy knowledge lookups through the same backend service."""
 
-
-@app.get("/knowledge", response_model=List[KnowledgeItem], tags=["knowledge"])
-async def list_knowledge() -> List[KnowledgeItem]:
-    """Provide a small subset of the curated knowledge base for prototypes."""
-    return MOCK_KNOWLEDGE
-
-
-@app.post("/chat", response_model=ChatResponse, tags=["chat"])
-async def chat_with_placeholder(request: ChatRequest) -> ChatResponse:
-    """Echo the incoming message to demonstrate the API contract."""
-    return ChatResponse(
-        reply=(
-            "현재는 데모 API입니다. 프론트엔드에서 제공되는 정보를 확인해 주시고, "
-            f"실제 답변은 추후 AI 연동 후 제공될 예정입니다. 질문: {request.message}"
-        ),
-        created_at=datetime.utcnow(),
-    )
+    payload: Dict[str, Any] = {"query": query}
+    if tags:
+        payload["tags"] = tags
+    return _request("knowledge", payload)

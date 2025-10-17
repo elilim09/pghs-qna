@@ -6,14 +6,13 @@ const GlassCard = ({ children, ...rest }: CardProps) => (
     sx={{
       position: 'relative',
       overflow: 'hidden',
-      backgroundColor: 'rgba(255, 255, 255, 0.68)',
-      backdropFilter: 'blur(24px)',
-      border: '1px solid rgba(255,255,255,0.35)',
-      boxShadow: '0 20px 40px rgba(103, 80, 164, 0.18)',
+      backgroundColor: '#FFFFFF',
+      border: '1px solid #E2E8F0',
+      boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
       ...rest.sx,
     }}
   >
-    <CardContent sx={{ p: { xs: 3, md: 4 } }}>{children}</CardContent>
+    <CardContent sx={{ p: { xs: 3, md: 4 }, display: 'flex', flexDirection: 'column', gap: 2 }}>{children}</CardContent>
   </Card>
 );
 

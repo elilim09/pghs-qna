@@ -1,5 +1,5 @@
 import { ReactNode, useMemo, useState } from 'react';
-import { Box, Chip, Collapse, Divider, Fade, Stack, Typography } from '@mui/material';
+import { Box, Chip, Collapse, Fade, Stack, Typography } from '@mui/material';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import FolderSpecialRoundedIcon from '@mui/icons-material/FolderSpecialRounded';
 import QuizRoundedIcon from '@mui/icons-material/QuizRounded';
@@ -43,24 +43,23 @@ const ExplorePage = () => {
   }, []);
 
   return (
-    <Stack spacing={4} sx={{ pb: 16 }}>
+    <Stack spacing={3} sx={{ flex: 1, pb: 20 }}>
       <GlassCard>
-        <Stack spacing={2}>
-          <Typography variant="overline" sx={{ color: 'primary.light', letterSpacing: 3 }}>
-            Explore
+        <Stack spacing={1.5}>
+          <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 2 }}>
+            탐색
           </Typography>
-          <Typography variant="h3" sx={{ fontWeight: 700 }}>
-            카테고리별 정보 탐색
+          <Typography variant="h4">카테고리별 핵심 정보</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            관심 있는 항목을 펼치고, 태그 또는 검색 기능을 활용하여 필요한 내용을 빠르게 찾아보세요.
           </Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            판교고등학교가 제공한 공식 문서를 바탕으로 입학, 교육과정, 학생 생활, ACE 프로그램까지 한눈에 탐색할 수 있도록 구성했습니다. 필요한 정보를 빠르게 찾기 위해 아래의 태그 또는 검색창을 활용해보세요.
-          </Typography>
-          <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 1 }}>
+          <Stack direction="row" flexWrap="wrap" gap={1} sx={{ pt: 1 }}>
             <Chip
               label="전체"
               color={activeTag === '' ? 'primary' : 'default'}
               variant={activeTag === '' ? 'filled' : 'outlined'}
               onClick={() => setActiveTag('')}
+              sx={{ borderRadius: 12, fontWeight: 600 }}
             />
             {tagSet.map((tag) => (
               <Chip
@@ -69,6 +68,7 @@ const ExplorePage = () => {
                 color={activeTag === tag ? 'primary' : 'default'}
                 variant={activeTag === tag ? 'filled' : 'outlined'}
                 onClick={() => setActiveTag((prev) => (prev === tag ? '' : tag))}
+                sx={{ borderRadius: 12, fontWeight: 600 }}
               />
             ))}
           </Stack>
@@ -91,30 +91,28 @@ const ExplorePage = () => {
                     sx={{
                       width: 48,
                       height: 48,
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, rgba(103,80,164,0.25), rgba(72,52,124,0.4))',
+                      borderRadius: 16,
+                      backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                      border: '1px solid rgba(37, 99, 235, 0.18)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: 'primary.main',
                       fontSize: 24,
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
                     }}
                   >
                     {iconMap[category.id] ?? <QuizRoundedIcon fontSize="inherit" />}
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      {category.title}
-                    </Typography>
+                    <Typography variant="h5">{category.title}</Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
                       {category.description}
                     </Typography>
                   </Box>
                   <Chip
                     label={`${category.items.length}건`}
-                    variant="outlined"
-                    sx={{ borderRadius: 999 }}
+                    size="small"
+                    sx={{ borderRadius: 12, fontWeight: 600, backgroundColor: 'rgba(37, 99, 235, 0.08)' }}
                   />
                   <ExpandMoreRoundedIcon
                     sx={{
@@ -125,8 +123,7 @@ const ExplorePage = () => {
                   />
                 </Stack>
                 <Collapse in={expandedCategory === category.id} timeout="auto" unmountOnExit>
-                  <Divider light sx={{ my: 1 }} />
-                  <Stack spacing={2}>
+                  <Stack spacing={2} sx={{ pt: 1 }}>
                     {category.items.length === 0 && (
                       <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                         선택한 태그나 검색어에 해당하는 내용이 없습니다. 다른 키워드를 시도해 보세요.
@@ -137,19 +134,19 @@ const ExplorePage = () => {
                         key={item.question}
                         sx={{
                           p: 2,
-                          borderRadius: 3,
-                          background: 'rgba(255,255,255,0.65)',
-                          border: '1px solid rgba(255,255,255,0.35)',
-                          boxShadow: '0 12px 24px rgba(103,80,164,0.12)',
+                          borderRadius: 2,
+                          backgroundColor: '#F8FAFC',
+                          border: '1px solid #E2E8F0',
+                          boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
                         }}
                       >
                         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                           {item.question}
                         </Typography>
-                        <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary', lineHeight: 1.6 }}>
+                        <Typography variant="body2" sx={{ mt: 1 }}>
                           {item.answer}
                         </Typography>
-                        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.disabled' }}>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
                           출처: {item.source} · 태그: {item.tags.join(', ')}
                         </Typography>
                       </Box>
@@ -167,6 +164,7 @@ const ExplorePage = () => {
         onChange={(event) => setSearchTerm(event.target.value)}
         placeholder="검색어를 입력하거나 태그를 눌러 정보를 찾아보세요"
       />
+      <Box sx={{ height: 160 }} />
     </Stack>
   );
 };

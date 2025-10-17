@@ -13,24 +13,29 @@ const BottomSearchBar = ({ value, placeholder, onChange, TextFieldProps: textFie
   return (
     <Box
       sx={{
-        position: 'sticky',
-        bottom: 16,
+        position: 'fixed',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        bottom: { xs: 100, sm: 110 },
         display: 'flex',
         justifyContent: 'center',
-        zIndex: (theme) => theme.zIndex.appBar - 1,
+        width: '100%',
+        pointerEvents: 'none',
+        px: 2,
+        zIndex: (theme) => theme.zIndex.modal - 1,
       }}
     >
       <Paper
         elevation={6}
         sx={{
+          pointerEvents: 'auto',
           px: 2,
-          py: 1,
-          width: { xs: '92%', sm: 520 },
-          borderRadius: 999,
-          backdropFilter: 'blur(20px)',
-          backgroundColor: 'rgba(246, 242, 255, 0.85)',
-          border: '1px solid rgba(255,255,255,0.4)',
-          boxShadow: '0 12px 30px rgba(103, 80, 164, 0.2)',
+          py: 1.25,
+          width: '100%',
+          maxWidth: 440,
+          borderRadius: 14,
+          border: '1px solid #CBD5F5',
+          boxShadow: '0 12px 24px rgba(15, 23, 42, 0.12)',
         }}
       >
         <TextField
@@ -43,8 +48,8 @@ const BottomSearchBar = ({ value, placeholder, onChange, TextFieldProps: textFie
             startAdornment: <SearchIcon color="primary" sx={{ mr: 1 }} />,
             disableUnderline: true,
             sx: {
-              fontSize: '1.05rem',
-              fontWeight: 500,
+              fontSize: '1rem',
+              fontWeight: 600,
             },
           }}
           {...textFieldProps}
