@@ -58,7 +58,7 @@ const theme = createTheme({
         },
         '::-webkit-scrollbar-thumb': {
           backgroundColor: 'rgba(148, 163, 184, 0.6)',
-          borderRadius: 999,
+          borderRadius: 12,
         },
       },
     },
@@ -76,7 +76,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           textTransform: 'none',
-          borderRadius: 999,
+          borderRadius: 12,
           fontWeight: 600,
         },
       },

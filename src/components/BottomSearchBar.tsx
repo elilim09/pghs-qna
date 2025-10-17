@@ -16,7 +16,7 @@ const BottomSearchBar = ({ value, placeholder, onChange, TextFieldProps: textFie
         position: 'fixed',
         left: '50%',
         transform: 'translateX(-50%)',
-        bottom: { xs: 24, sm: 32 },
+        bottom: { xs: 100, sm: 110 },
         display: 'flex',
         justifyContent: 'center',
         width: '100%',
@@ -33,9 +33,9 @@ const BottomSearchBar = ({ value, placeholder, onChange, TextFieldProps: textFie
           py: 1.25,
           width: '100%',
           maxWidth: 440,
-          borderRadius: 18,
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 16px 32px rgba(15, 23, 42, 0.12)',
+          borderRadius: 14,
+          border: '1px solid #CBD5F5',
+          boxShadow: '0 12px 24px rgba(15, 23, 42, 0.12)',
         }}
       >
         <TextField
