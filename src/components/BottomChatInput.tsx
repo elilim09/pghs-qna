@@ -47,10 +47,31 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
       }}
     >
       <TextField
+          fullWidth
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder ?? 'ㅁ나러마ㅣ너리ㅏㄴㅁ라ㅣㅇㄴㅁ'}
+          variant="standard"
+          multiline
+          minRows={1}
+          maxRows={4}
+          InputProps={{
+            disableUnderline: true,
+            sx: {
+              fontSize: '1rem',
+              fontWeight: 600,
+              pr: 1,
+            },
+          }}
+        />
+         <IconButton type="submit" color="primary" disabled={disabled} sx={{ ml: 1.5 }}>
+          <SendRoundedIcon />
+        </IconButton>
+      {/* <TextField
         fullWidth
         value={value}
         onChange={onChange}
-        onKeyDown={handleKeyDown}
+        //onKeyDown={handleKeyDown}
         placeholder={placeholder ?? '질문을 입력하세요'}
         variant="standard"
         multiline
@@ -96,7 +117,7 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
         //   onCompositionStart: () => setIsComposing(true),
         //   onCompositionEnd: () => setIsComposing(false),
         // }}
-      />
+      /> */}
     </Paper>
   );
 };
