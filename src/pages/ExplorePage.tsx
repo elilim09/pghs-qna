@@ -4,6 +4,7 @@ import QuizRoundedIcon from '@mui/icons-material/QuizRounded';
 import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import BottomSearchBar from '../components/BottomSearchBar';
+import GoogleAd from '../components/GoogleAd';
 import KakaoAd from '../components/KakaoAd';
 import knowledgeBase from '../data/knowledgeBase';
 import { useOutletContext } from 'react-router-dom';
@@ -164,6 +165,7 @@ const ExplorePage = () => {
         </Stack>
       </Paper>
 
+      <GoogleAd />
       <KakaoAd /> 
       {filteredCategories.length === 0 ? (
         <Paper
