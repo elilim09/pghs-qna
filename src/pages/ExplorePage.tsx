@@ -4,6 +4,7 @@ import QuizRoundedIcon from '@mui/icons-material/QuizRounded';
 import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import BottomSearchBar from '../components/BottomSearchBar';
+import KakaoAd from '../components/KakaoAd';
 import knowledgeBase from '../data/knowledgeBase';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
@@ -86,6 +87,7 @@ const ExplorePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setFloatingInput]);
 
+
   /** ====== 데이터 필터링(디자인/로직 기존 유지) ====== */
   const filteredCategories = knowledgeBase
     .map((category) => {
@@ -162,6 +164,7 @@ const ExplorePage = () => {
         </Stack>
       </Paper>
 
+      <KakaoAd /> 
       {filteredCategories.length === 0 ? (
         <Paper
           elevation={0}
