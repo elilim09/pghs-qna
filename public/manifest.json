@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "판교고 QnA",
+  "name": "판교고등학교 QnA", 
   "icons": [
     {
       "src": "favicon.ico",
