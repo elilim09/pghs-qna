@@ -9,3 +9,7 @@ This project aims to provide information about Pangyo High School through a chat
 ## Kakao 1:1 Chatbot
 
 [Kakao Link](http://pf.kakao.com/_YhhDn/friend)
+
+## Web Site
+
+[Pangyo QNA Web Link](https://pghs-qna.web.app/)
