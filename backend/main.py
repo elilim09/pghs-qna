@@ -7,6 +7,7 @@ from pydantic import BaseModel
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from typing import Optional
 
 # .env 파일 로드
 load_dotenv()
@@ -46,17 +47,18 @@ def read_cpu_temp():
         return {"error": "온도 읽기 실패"}
     return {"temperature": temp, "unit": "°C"}
 
-# 요청 모델
 class ChatRequest(BaseModel):
     message: str
+    system: Optional[str] = None 
 
 @app.post("/api/chat")
 def chat_with_gpt(req: ChatRequest):
+    system_content = req.system or "너는 판교고등학교 QnA 봇이야. 학생들의 질문에 친절하고 정확하게 답변해줘."
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "너는 판교고등학교 QnA 봇이야. 학생들의 질문에 친절하고 정확하게 답변해줘."},
+                {"role": "system", "content": system_content},
                 {"role": "user", "content": req.message},
             ],
         )
