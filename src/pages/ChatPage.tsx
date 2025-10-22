@@ -1,12 +1,12 @@
 // src/pages/ChatPage.tsx
-import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, ChangeEvent } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
-import knowledgeEntries from '../data/knowledgeBase';
 import BottomChatInput from '../components/BottomChatInput';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
+import { buildKnowledgeBasedReply } from '../utils/knowledgeSearch';
 
 interface Message {
   id: string;
@@ -14,19 +14,6 @@ interface Message {
   content: string;
   timestamp: string;
 }
-
-const demoAssistantReply = (prompt: string) => {
-  const matched = knowledgeEntries.find((entry) =>
-    entry.tags.some((tag) => prompt.toLowerCase().includes(tag.toLowerCase())),
-  );
-  if (matched) {
-    const sourceLabel = matched.sources.join(', ');
-    return `"${matched.question}"에 대한 안내입니다. ${matched.answer} (출처: ${sourceLabel})`;
-  }
-  const fallback =
-    '현재는 예시 챗봇 환경입니다. 학교에서 제공한 정보를 기반으로 다양한 질문에 답변할 수 있도록 개발되고 있습니다.';
-  return fallback;
-};
 
 /**
  * 플로팅 입력에 실제로 렌더링될 “안전한” 래퍼 컴포넌트.
@@ -114,7 +101,7 @@ const ChatPage = () => {
     const assistantMessage: Message = {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: demoAssistantReply(text),
+      content: buildKnowledgeBasedReply(text),
       timestamp: now,
     };
 
