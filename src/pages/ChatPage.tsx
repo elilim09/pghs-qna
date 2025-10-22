@@ -1,12 +1,12 @@
 // src/pages/ChatPage.tsx
-import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, ChangeEvent } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
-import knowledgeEntries from '../data/knowledgeBase';
 import BottomChatInput from '../components/BottomChatInput';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
+import { getKnowledgeEntryCount, searchKnowledgeBase } from '../utils/knowledgeSearch';
 
 interface Message {
   id: string;
@@ -15,17 +15,36 @@ interface Message {
   timestamp: string;
 }
 
-const demoAssistantReply = (prompt: string) => {
-  const matched = knowledgeEntries.find((entry) =>
-    entry.tags.some((tag) => prompt.toLowerCase().includes(tag.toLowerCase())),
-  );
-  if (matched) {
-    const sourceLabel = matched.sources.join(', ');
-    return `"${matched.question}"에 대한 안내입니다. ${matched.answer} (출처: ${sourceLabel})`;
+const knowledgeEntryCount = getKnowledgeEntryCount();
+
+const createAssistantReply = (prompt: string) => {
+  const results = searchKnowledgeBase(prompt, 3);
+
+  if (results.length === 0) {
+    return [
+      '죄송합니다. 질문과 직접 연결되는 공식 자료를 찾지 못했습니다.',
+      '질문을 조금 더 구체적으로 작성하거나 다른 표현으로 다시 시도해 주세요.',
+    ].join('\n');
   }
-  const fallback =
-    '현재는 예시 챗봇 환경입니다. 학교에서 제공한 정보를 기반으로 다양한 질문에 답변할 수 있도록 개발되고 있습니다.';
-  return fallback;
+
+  const formattedSections = results.map(({ entry, matchedTokens }, index) => {
+    const sectionLines = [
+      `#${index + 1}. ${entry.question}`,
+      entry.answer.trim(),
+      `출처: ${entry.sources.join(', ')}`,
+    ];
+
+    if (matchedTokens.length > 0) {
+      const keywordLabel = matchedTokens
+        .map((token) => `"${token}"`)
+        .join(', ');
+      sectionLines.splice(1, 0, `관련 키워드 일치: ${keywordLabel}`);
+    }
+
+    return sectionLines.join('\n\n');
+  });
+
+  return `${formattedSections.join('\n\n---\n\n')}\n\n위 답변은 판교고등학교에서 배포한 공식 자료에 근거하여 제공되었습니다.`;
 };
 
 /**
@@ -85,7 +104,7 @@ const ChatPage = () => {
     {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: '안녕하세요. 판교고 입학 안내 챗봇입니다. 궁금한 내용을 질문해 주세요.',
+      content: `안녕하세요. 판교고 입학 안내 챗봇입니다. 현재 ${knowledgeEntryCount}건의 공식 Q&A 자료를 기반으로 정확한 정보를 안내해 드릴게요. 궁금한 내용을 질문해 주세요.`,
       timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -114,7 +133,7 @@ const ChatPage = () => {
     const assistantMessage: Message = {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: demoAssistantReply(text),
+      content: createAssistantReply(text),
       timestamp: now,
     };
 
