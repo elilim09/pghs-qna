@@ -1,15 +1,11 @@
 // src/pages/ChatPage.tsx
-import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, ChangeEvent } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import BottomChatInput from '../components/BottomChatInput';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
-import {
-  buildAnswerFromResult,
-  searchKnowledgeBase,
-} from '../utils/knowledgeSearch';
 
 interface Message {
   id: string;
@@ -18,35 +14,17 @@ interface Message {
   timestamp: string;
 }
 
-const buildAssistantReply = (prompt: string) => {
-  const results = searchKnowledgeBase(prompt, 3);
-
-  if (results.length === 0) {
-    return [
-      '죄송합니다. 제공된 학교 공식 자료에서 해당 질문에 대한 답을 찾지 못했습니다.',
-      '질문을 조금 더 구체적으로 작성해 주시거나, 다른 주제로 문의해 주세요.',
-    ].join('\n');
+const demoAssistantReply = (prompt: string) => {
+  const matched = knowledgeEntries.find((entry) =>
+    entry.tags.some((tag) => prompt.toLowerCase().includes(tag.toLowerCase())),
+  );
+  if (matched) {
+    const sourceLabel = matched.sources.join(', ');
+    return `"${matched.question}"에 대한 안내입니다. ${matched.answer} (출처: ${sourceLabel})`;
   }
-
-  const [primary, ...others] = results;
-  const mainAnswer = buildAnswerFromResult(primary);
-
-  if (others.length === 0) {
-    return `"${primary.entry.question}"에 대한 답변입니다.\n\n${mainAnswer}`;
-  }
-
-  const related = others
-    .map((result, index) => `${index + 1}. ${result.entry.question}`)
-    .join('\n');
-
-  return [
-    `"${primary.entry.question}"에 대한 답변입니다.`,
-    '',
-    mainAnswer,
-    '',
-    '추가로 참고할 만한 공식 답변:',
-    related,
-  ].join('\n');
+  const fallback =
+    '현재는 예시 챗봇 환경입니다. 학교에서 제공한 정보를 기반으로 다양한 질문에 답변할 수 있도록 개발되고 있습니다.';
+  return fallback;
 };
 
 /**
@@ -135,7 +113,7 @@ const ChatPage = () => {
     const assistantMessage: Message = {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: buildAssistantReply(text),
+      content: demoAssistantReply(text),
       timestamp: now,
     };
 
