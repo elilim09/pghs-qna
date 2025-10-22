@@ -1,59 +1,65 @@
-"""Utility helpers for Firebase Functions HTTP triggers.
-
-This module deliberately keeps only the request helpers that will be reused
-from Cloud Functions, allowing the frontend to call a unified HTTP endpoint.
-"""
-from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
-
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import subprocess
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import os
-import requests
+from openai import OpenAI
+from dotenv import load_dotenv
 
-API_BASE_URL = os.getenv("PGHS_EXTERNAL_API", "https://example.com")
-TIMEOUT_SECONDS = float(os.getenv("PGHS_API_TIMEOUT", "10"))
+# .env 파일 로드
+load_dotenv()
 
+# OpenAI 클라이언트 초기화
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-@dataclass
-class ChatPayload:
-    """Structured payload for chatbot requests."""
+app = FastAPI()
 
-    session_id: str
+# ✅ Firebase Hosting + 로컬 React 접근 허용
+origins = [
+    "https://pangyo-qna.web.app",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 보안을 위해 나중에 특정 도메인으로 제한 가능
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+def get_cpu_temp():
+    try:
+        result = subprocess.run(['vcgencmd', 'measure_temp'], capture_output=True, text=True)
+        output = result.stdout.strip()  # 예: "temp=46.2'C"
+        temp_str = output.replace("temp=", "").replace("'C", "")
+        return float(temp_str)
+    except Exception as e:
+        return None
+
+@app.get("/api/temp")
+def read_cpu_temp():
+    temp = get_cpu_temp()
+    if temp is None:
+        return {"error": "온도 읽기 실패"}
+    return {"temperature": temp, "unit": "°C"}
+
+# 요청 모델
+class ChatRequest(BaseModel):
     message: str
-    locale: str = "ko-KR"
-    metadata: Optional[Dict[str, Any]] = None
 
-    def to_dict(self) -> Dict[str, Any]:
-        payload: Dict[str, Any] = {
-            "session_id": self.session_id,
-            "message": self.message,
-            "locale": self.locale,
-        }
-        if self.metadata:
-            payload["metadata"] = self.metadata
-        return payload
-
-
-def _request(path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Send a JSON request to the configured API endpoint."""
-
-    url = f"{API_BASE_URL.rstrip('/')}/{path.lstrip('/')}"
-    response = requests.post(url, json=payload, timeout=TIMEOUT_SECONDS)
-    response.raise_for_status()
-    return response.json()
-
-
-def send_chat_request(chat_payload: ChatPayload) -> Dict[str, Any]:
-    """Helper used from Firebase Functions to route chat completions."""
-
-    return _request("chat", chat_payload.to_dict())
-
-
-def send_knowledge_lookup(query: str, *, tags: Optional[list[str]] = None) -> Dict[str, Any]:
-    """Proxy knowledge lookups through the same backend service."""
-
-    payload: Dict[str, Any] = {"query": query}
-    if tags:
-        payload["tags"] = tags
-    return _request("knowledge", payload)
+@app.post("/api/chat")
+def chat_with_gpt(req: ChatRequest):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "너는 판교고등학교 QnA 봇이야. 학생들의 질문에 친절하고 정확하게 답변해줘."},
+                {"role": "user", "content": req.message},
+            ],
+        )
+        return {"reply": response.choices[0].message.content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
