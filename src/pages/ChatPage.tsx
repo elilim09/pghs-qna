@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from '
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
-import knowledgeBase from '../data/knowledgeBase';
+import knowledgeEntries from '../data/knowledgeBase';
 import BottomChatInput from '../components/BottomChatInput';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
@@ -16,10 +16,12 @@ interface Message {
 }
 
 const demoAssistantReply = (prompt: string) => {
-  const flatItems = knowledgeBase.flatMap((category) => category.items);
-  const matched = flatItems.find((item) => item.tags.some((tag) => prompt.includes(tag)));
+  const matched = knowledgeEntries.find((entry) =>
+    entry.tags.some((tag) => prompt.toLowerCase().includes(tag.toLowerCase())),
+  );
   if (matched) {
-    return `"${matched.question}"에 대한 안내입니다. ${matched.answer} (출처: ${matched.source})`;
+    const sourceLabel = matched.sources.join(', ');
+    return `"${matched.question}"에 대한 안내입니다. ${matched.answer} (출처: ${sourceLabel})`;
   }
   const fallback =
     '현재는 예시 챗봇 환경입니다. 학교에서 제공한 정보를 기반으로 다양한 질문에 답변할 수 있도록 개발되고 있습니다.';

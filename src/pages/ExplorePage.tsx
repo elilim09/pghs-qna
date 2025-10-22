@@ -5,18 +5,30 @@ import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import BottomSearchBar from '../components/BottomSearchBar';
 import KakaoAd from '../components/KakaoAd';
-import knowledgeBase from '../data/knowledgeBase';
+import knowledgeEntries from '../data/knowledgeBase';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
 
-/** ===== 아이콘 매핑(디자인 동일 유지) ===== */
-const iconMap: Record<string, ReactNode> = {
-  'school-overview': <QuizRoundedIcon fontSize="inherit" />,
-  'learning-roadmap': <SchoolRoundedIcon fontSize="inherit" />,
-  'ace-experience': <AutoAwesomeRoundedIcon fontSize="inherit" />,
+/** ===== 카테고리별 아이콘 매핑 ===== */
+const categoryIconMap: Record<string, ReactNode> = {
+  '학교 현황 · 배정': <QuizRoundedIcon fontSize="inherit" />,
+  '교과 · 비교과 운영': <SchoolRoundedIcon fontSize="inherit" />,
+  '입시 · 진학 전략': <AutoAwesomeRoundedIcon fontSize="inherit" />,
+  'ACE 프로그램': <AutoAwesomeRoundedIcon fontSize="inherit" />,
 };
 
-/** 
+const TAG_ORDER = [
+  '입학·배정',
+  '학생경험·문화',
+  '학사운영',
+  '학업·평가',
+  '비교과·프로그램',
+  '진학·상담',
+  '생활지원',
+  'ACE특화',
+];
+
+/**
  * 플로팅 영역에 실제로 렌더링될 안전한 검색 입력 래퍼
  * - 내부 state로 value 관리 (부모에서 value를 내려주지 않음)
  * - 합성(IME) 이벤트 처리
@@ -87,34 +99,35 @@ const ExplorePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setFloatingInput]);
 
+  const normalizedSearch = searchTerm.trim().toLowerCase();
 
-  /** ====== 데이터 필터링(디자인/로직 기존 유지) ====== */
-  const filteredCategories = knowledgeBase
-    .map((category) => {
-      const matchesSearch = (text: string) =>
-        text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+  const filteredEntries = useMemo(() => {
+    return knowledgeEntries.filter((entry) => {
+      const matchesTag = activeTag ? entry.tags.includes(activeTag) : true;
+      if (!matchesTag) return false;
+      if (!normalizedSearch) return true;
 
-      const filteredItems = category.items.filter((item) => {
-        const matchesTag = activeTag ? item.tags.includes(activeTag) : true;
-        const matchesQuery = searchTerm
-          ? matchesSearch(item.question) ||
-            matchesSearch(item.answer) ||
-            item.highlights?.some(matchesSearch) ||
-            matchesSearch(category.title)
-          : true;
-        return matchesTag && matchesQuery;
-      });
+      const searchableText = [
+        entry.question,
+        entry.answer,
+        entry.category,
+        entry.sources.join(' '),
+        entry.tags.join(' '),
+      ]
+        .join(' ')
+        .toLowerCase();
 
-      return { ...category, items: filteredItems };
-    })
-    .filter((category) => category.items.length > 0);
+      return normalizedSearch
+        .split(/\s+/)
+        .filter(Boolean)
+        .every((token) => searchableText.includes(token));
+    });
+  }, [activeTag, normalizedSearch]);
 
-  const tagSet = useMemo(() => {
-    const tags = new Set<string>();
-    knowledgeBase.forEach((category) =>
-      category.items.forEach((item) => item.tags.forEach((tag) => tags.add(tag))),
-    );
-    return Array.from(tags);
+  const tagOptions = useMemo(() => {
+    const tagSet = new Set<string>();
+    knowledgeEntries.forEach((entry) => entry.tags.forEach((tag) => tagSet.add(tag)));
+    return TAG_ORDER.filter((tag) => tagSet.has(tag));
   }, []);
 
   return (
@@ -135,14 +148,31 @@ const ExplorePage = () => {
               탐색
             </Typography>
             <Typography variant="h4" sx={{ mt: 0.5 }}>
-              카테고리별 핵심 정보
+              공식 문서 기반 통합 피드
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
-              검색창과 태그를 활용하면 원하는 정보를 바로 확인할 수 있습니다. 아래 주제들은 학교 공식 문서를 정밀 분석해 정리했습니다.
+              검색과 태그를 조합해 학교 문서 전체를 빠르게 살펴보세요. 모든 답변은 공개 문서를 정밀 분석해 카테고리로 정리한 내용입니다.
             </Typography>
           </Box>
 
-          <Stack direction="row" flexWrap="wrap" gap={1.2}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridAutoFlow: 'column',
+              gridTemplateRows: 'repeat(2, auto)',
+              gap: 1.2,
+              overflowX: 'auto',
+              pr: 0.5,
+              pb: 1,
+              '&::-webkit-scrollbar': {
+                height: 6,
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: 'rgba(37, 99, 235, 0.35)',
+                borderRadius: 999,
+              },
+            }}
+          >
             <Chip
               label="전체"
               color={activeTag === '' ? 'primary' : 'default'}
@@ -150,21 +180,21 @@ const ExplorePage = () => {
               onClick={() => setActiveTag('')}
               sx={{ borderRadius: 12, fontWeight: 600 }}
             />
-            {tagSet.map((tag) => (
+            {tagOptions.map((tag) => (
               <Chip
                 key={tag}
                 label={tag}
                 color={activeTag === tag ? 'primary' : 'default'}
                 variant={activeTag === tag ? 'filled' : 'outlined'}
                 onClick={() => setActiveTag((prev) => (prev === tag ? '' : tag))}
-                sx={{ borderRadius: 12, fontWeight: 600 }}
+                sx={{ borderRadius: 12, fontWeight: 600, whiteSpace: 'nowrap' }}
               />
             ))}
-          </Stack>
+          </Box>
         </Stack>
       </Paper>
-      <KakaoAd /> 
-      {filteredCategories.length === 0 ? (
+      <KakaoAd />
+      {filteredEntries.length === 0 ? (
         <Paper
           elevation={0}
           sx={{
@@ -184,9 +214,9 @@ const ExplorePage = () => {
         </Paper>
       ) : (
         <Stack spacing={3}>
-          {filteredCategories.map((category) => (
+          {filteredEntries.map((entry) => (
             <Paper
-              key={category.id}
+              key={entry.id}
               elevation={0}
               sx={{
                 borderRadius: 3,
@@ -198,11 +228,7 @@ const ExplorePage = () => {
               }}
             >
               <Stack spacing={2.5}>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={2}
-                  alignItems={{ xs: 'flex-start', sm: 'center' }}
-                >
+                <Stack direction="row" spacing={2} alignItems="flex-start">
                   <Box
                     sx={{
                       width: 52,
@@ -215,56 +241,35 @@ const ExplorePage = () => {
                       justifyContent: 'center',
                       color: 'primary.main',
                       fontSize: 26,
+                      flexShrink: 0,
                     }}
                   >
-                    {iconMap[category.id] ?? <QuizRoundedIcon fontSize="inherit" />}
+                    {categoryIconMap[entry.category] ?? <QuizRoundedIcon fontSize="inherit" />}
                   </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h5">{category.title}</Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                      {category.description}
+                  <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                      {entry.category}
                     </Typography>
-                  </Box>
-                  <Chip
-                    label={`${category.items.length}건`}
-                    size="small"
-                    sx={{ borderRadius: 12, fontWeight: 600, backgroundColor: 'rgba(37, 99, 235, 0.1)' }}
-                  />
+                    <Typography variant="h5" sx={{ wordBreak: 'keep-all' }}>
+                      {entry.question}
+                    </Typography>
+                  </Stack>
                 </Stack>
                 <Divider />
-                <Stack spacing={2.5}>
-                  {category.items.map((item) => (
-                    <Box
-                      key={item.question}
-                      sx={{
-                        borderRadius: 2,
-                        border: '1px solid rgba(148, 163, 184, 0.35)',
-                        backgroundColor: 'rgba(248, 250, 252, 0.85)',
-                        p: { xs: 2, sm: 2.5 },
-                      }}
-                    >
-                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                        {item.question}
-                      </Typography>
-                      {item.highlights && item.highlights.length > 0 && (
-                        <Stack component="ul" spacing={0.75} sx={{ mt: 1.25, pl: 2.5, color: 'text.secondary' }}>
-                          {item.highlights.map((highlight) => (
-                            <Typography key={highlight} component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
-                              {highlight}
-                            </Typography>
-                          ))}
-                        </Stack>
-                      )}
-                      <Typography variant="body2" sx={{ mt: 1.25, whiteSpace: 'pre-line' }}>
-                        {item.answer}
-                      </Typography>
-                      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 1.5 }}>
-                        {item.tags.map((tag) => (
-                          <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 10 }} />
-                        ))}
-                        <Chip label={item.source} size="small" color="default" sx={{ borderRadius: 10 }} />
-                      </Stack>
-                    </Box>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}>
+                  {entry.answer}
+                </Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  {entry.tags.map((tag) => (
+                    <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 10 }} />
+                  ))}
+                  {entry.sources.map((source) => (
+                    <Chip
+                      key={source}
+                      label={source}
+                      size="small"
+                      sx={{ borderRadius: 10, backgroundColor: 'rgba(37, 99, 235, 0.08)' }}
+                    />
                   ))}
                 </Stack>
               </Stack>
