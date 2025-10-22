@@ -1,12 +1,12 @@
 // src/pages/ChatPage.tsx
-import { useCallback, useEffect, useMemo, useRef, useState, ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, ChangeEvent } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
-import knowledgeEntries from '../data/knowledgeBase';
 import BottomChatInput from '../components/BottomChatInput';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
+import { requestChatAnswer } from '../services/chatService';
 
 interface Message {
   id: string;
@@ -14,19 +14,6 @@ interface Message {
   content: string;
   timestamp: string;
 }
-
-const demoAssistantReply = (prompt: string) => {
-  const matched = knowledgeEntries.find((entry) =>
-    entry.tags.some((tag) => prompt.toLowerCase().includes(tag.toLowerCase())),
-  );
-  if (matched) {
-    const sourceLabel = matched.sources.join(', ');
-    return `"${matched.question}"에 대한 안내입니다. ${matched.answer} (출처: ${sourceLabel})`;
-  }
-  const fallback =
-    '현재는 예시 챗봇 환경입니다. 학교에서 제공한 정보를 기반으로 다양한 질문에 답변할 수 있도록 개발되고 있습니다.';
-  return fallback;
-};
 
 /**
  * 플로팅 입력에 실제로 렌더링될 “안전한” 래퍼 컴포넌트.
@@ -90,6 +77,17 @@ const ChatPage = () => {
     },
   ]);
 
+  const messagesRef = useRef<Message[]>(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  const [isAwaitingReply, setIsAwaitingReply] = useState(false);
+  const isAwaitingReplyRef = useRef(isAwaitingReply);
+  useEffect(() => {
+    isAwaitingReplyRef.current = isAwaitingReply;
+  }, [isAwaitingReply]);
+
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -101,25 +99,93 @@ const ChatPage = () => {
     }
   }, [messages]);
 
+  const sendQuestionToAssistant = useCallback(
+    async (history: Message[], question: string, placeholderId: string) => {
+      setIsAwaitingReply(true);
+      try {
+        const filteredHistory = history.filter(
+          (message): message is Message & { role: 'user' | 'assistant' } => message.role !== 'system',
+        );
+
+        const { reply, sources } = await requestChatAnswer({
+          question,
+          history: filteredHistory.map((message) => ({ role: message.role, content: message.content })),
+        });
+
+        const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        const uniqueSources = Array.from(new Set(sources));
+        const sourceText = uniqueSources.length > 0 ? `\n\n참고 문서: ${uniqueSources.join(', ')}` : '';
+
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === placeholderId
+              ? { ...message, content: `${reply}${sourceText}`, timestamp: now }
+              : message,
+          ),
+        );
+      } catch (error) {
+        const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        const errorMessage =
+          error instanceof Error
+            ? `답변을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.\n사유: ${error.message}`
+            : '답변을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === placeholderId ? { ...message, content: errorMessage, timestamp: now } : message,
+          ),
+        );
+      } finally {
+        setIsAwaitingReply(false);
+      }
+    },
+    [],
+  );
+
   // 플로팅 입력에서 올라오는 "확정 텍스트"만 처리 (타이핑은 플로팅 컴포넌트 내부 상태로만)
-  const handleSubmitFromFloating = useCallback((text: string) => {
-    const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  const handleSubmitFromFloating = useCallback(
+    (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed) {
+        return;
+      }
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: text,
-      timestamp: now,
-    };
-    const assistantMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: demoAssistantReply(text),
-      timestamp: now,
-    };
+      const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
-    setMessages((prev) => [...prev, userMessage, assistantMessage]);
-  }, []);
+      if (isAwaitingReplyRef.current) {
+        const waitMessage: Message = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '이전 질문에 대한 답변을 준비 중입니다. 잠시 후 다시 시도해 주세요.',
+          timestamp: now,
+        };
+        setMessages((prev) => [...prev, waitMessage]);
+        return;
+      }
+
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: trimmed,
+        timestamp: now,
+      };
+
+      const placeholderId = crypto.randomUUID();
+      const assistantPlaceholder: Message = {
+        id: placeholderId,
+        role: 'assistant',
+        content: '답변을 생성하고 있어요... 잠시만 기다려 주세요.',
+        timestamp: now,
+      };
+
+      const historyBeforeSend = messagesRef.current;
+
+      setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
+
+      void sendQuestionToAssistant([...historyBeforeSend, userMessage], trimmed, placeholderId);
+    },
+    [sendQuestionToAssistant],
+  );
 
   // ⛳️ 핵심: setFloatingInput는 마운트 시 "단 1회"만 호출하고, 변동 없는 props만 넘긴다.
   useEffect(() => {
