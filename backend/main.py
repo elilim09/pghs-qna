@@ -53,10 +53,10 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 def chat_with_gpt(req: ChatRequest):
-    system_content = req.system or "너는 판교고등학교 QnA 봇이야. 학생들의 질문에 친절하고 정확하게 답변해줘."
+    system_content = req.system or "너는 판교고등학교에 대해 매우 잘 아는 친절한 도우미이며, 학생 혹은 학부모들의 질문에 대한 Q&A를 담당하고 있어. 사용자들이 묻는 질문에 '업로드 되어있는 공식 파일'만을 참고하여, 거짓 정보없이 정확하고 도움이 되는 답변을 '최고의 역량을 발휘하여' 제공해."
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": system_content},
                 {"role": "user", "content": req.message},
