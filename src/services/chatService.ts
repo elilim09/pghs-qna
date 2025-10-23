@@ -26,7 +26,7 @@ interface IndexedEntry {
   normalizedAll: string;
 }
 
-const DEFAULT_API_BASE_URL = 'http://59.11.41.173:8000';
+const DEFAULT_API_BASE_URL = 'https://0e06ef1e6d36.ngrok-free.app';
 const apiBaseUrl = (process.env.REACT_APP_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, '');
 const API_ENDPOINT = `${apiBaseUrl}/api/chat`;
 
