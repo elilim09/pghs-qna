@@ -16,27 +16,26 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 app = FastAPI()
 
 # 허용할 도메인 리스트
+# 라즈베리파이 공인 IP 또는 연결된 도메인으로 설정
 origins = [
-    "http://localhost:3000",           # 로컬 개발
-    "https://pangyo-qna.web.app",      # Firebase Hosting
-    # ngrok은 매번 바뀌므로, 개발 중에만 아래 줄 추가 (선택)
-    "https://12773246a6ea.ngrok-free.app",
+    "http://localhost:3000",            # 로컬 개발
+    "https://pangyo-qna.web.app",       # Firebase Hosting
+    "https://student1.1jy2.com",        # 라즈베리파이 도메인
 ]
 
-# CORS 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,           # 여기만 바꾸세요!
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# CPU 온도 읽기 함수
+# CPU 온도 읽기
 def get_cpu_temp():
     try:
         result = subprocess.run(['vcgencmd', 'measure_temp'], capture_output=True, text=True)
-        output = result.stdout.strip()  # 예: "temp=46.2'C"
+        output = result.stdout.strip()
         temp_str = output.replace("temp=", "").replace("'C", "")
         return float(temp_str)
     except Exception:
@@ -52,14 +51,14 @@ def read_cpu_temp():
 # 채팅 요청 모델
 class ChatRequest(BaseModel):
     message: str
-    system: Optional[str] = None 
+    system: Optional[str] = None
 
 @app.post("/api/chat")
 def chat_with_gpt(req: ChatRequest):
-    system_content = req.system or "너는 판교고등학교에 대해 매우 잘 아는 친절한 도우미이며, 학생 혹은 학부모들의 질문에 대한 Q&A를 담당하고 있어. 사용자들이 묻는 질문에 '업로드 되어있는 공식 파일'만을 참고하여, 거짓 정보없이 정확하고 도움이 되는 답변을 '최고의 역량을 발휘하여' 제공해."
+    system_content = req.system or "너는 판교고등학교 QnA 봇이며, 학생 질문에 친절하고 정확하게 답변해."
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # gpt-5-mini는 없음 → gpt-4o-mini 추천
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_content},
                 {"role": "user", "content": req.message},
@@ -68,3 +67,7 @@ def chat_with_gpt(req: ChatRequest):
         return {"reply": response.choices[0].message.content}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
