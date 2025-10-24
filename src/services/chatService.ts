@@ -26,9 +26,9 @@ interface IndexedEntry {
   normalizedAll: string;
 }
 
-const DEFAULT_API_BASE_URL = 'https://student1.1jy2.com/';
+const DEFAULT_API_BASE_URL = '';
 const apiBaseUrl = (process.env.REACT_APP_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, '');
-const API_ENDPOINT = `${apiBaseUrl}/api/chat`;
+const API_ENDPOINT = apiBaseUrl ? `${apiBaseUrl}/api/chat` : '/api/chat';
 
 const SYSTEM_PROMPT = `너는 판교고등학교에 대해 매우 잘 아는 친절한 도우미이며, 학생 혹은 학부모들의 질문에 대한 Q&A를 담당하고 있어. 제공된 학교 공식 문서 발췌 내용만을 근거로 정확하고 도움이 되는 답변을 제공해. 문서에 정보가 없으면 사실대로 모른다고 말하고, 절대로 추측하거나 문서에 없는 내용을 만들어내지 마.`;
 
@@ -173,7 +173,19 @@ export const requestChatAnswer = async ({ question, history }: ChatRequestPayloa
     throw new Error(`API 요청 실패 (${response.status}): ${errorText}`);
   }
 
-  const data = (await response.json()) as { reply?: string };
+  const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
+  const rawBody = await response.text();
+
+  if (!contentType.includes('application/json')) {
+    throw new Error(`API 응답이 JSON이 아닙니다: ${rawBody}`);
+  }
+
+  let data: { reply?: string };
+  try {
+    data = JSON.parse(rawBody) as { reply?: string };
+  } catch (error) {
+    throw new Error(`API 응답 JSON 파싱 실패: ${(error as Error).message} | 원본 응답: ${rawBody}`);
+  }
 
   if (!data.reply) {
     throw new Error('API 응답에 reply 필드가 없습니다.');
