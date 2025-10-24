@@ -173,7 +173,19 @@ export const requestChatAnswer = async ({ question, history }: ChatRequestPayloa
     throw new Error(`API 요청 실패 (${response.status}): ${errorText}`);
   }
 
-  const data = (await response.json()) as { reply?: string };
+  const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
+  const rawBody = await response.text();
+
+  if (!contentType.includes('application/json')) {
+    throw new Error(`API 응답이 JSON이 아닙니다: ${rawBody}`);
+  }
+
+  let data: { reply?: string };
+  try {
+    data = JSON.parse(rawBody) as { reply?: string };
+  } catch (error) {
+    throw new Error(`API 응답 JSON 파싱 실패: ${(error as Error).message} | 원본 응답: ${rawBody}`);
+  }
 
   if (!data.reply) {
     throw new Error('API 응답에 reply 필드가 없습니다.');
