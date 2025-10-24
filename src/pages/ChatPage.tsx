@@ -288,6 +288,7 @@ const ChatPage = () => {
             </Stack>
           );
         })}
+        <Box ref={scrollAnchorRef} sx={{ height: 1 }} />
       </Box>
     </Stack>
   );

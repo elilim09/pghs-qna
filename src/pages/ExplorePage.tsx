@@ -258,6 +258,17 @@ const ExplorePage = () => {
                       {entry.question}
                     </Typography>
                   </Stack>
+                  <Divider />
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}>
+                    {entry.answer}
+                  </Typography>
+                  {displayTags.length > 0 && (
+                    <Stack direction="row" flexWrap="wrap" gap={1}>
+                      {displayTags.map((tag) => (
+                        <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 10 }} />
+                      ))}
+                    </Stack>
+                  )}
                 </Stack>
                 <Divider />
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}>
