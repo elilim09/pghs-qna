@@ -28,6 +28,8 @@ const TAG_ORDER = [
   'ACE특화',
 ];
 
+const filterDocumentTags = (tags: string[]) => tags.filter((tag) => !tag.toLowerCase().includes('.pdf'));
+
 /**
  * 플로팅 영역에 실제로 렌더링될 안전한 검색 입력 래퍼
  * - 내부 state로 value 관리 (부모에서 value를 내려주지 않음)
@@ -215,7 +217,7 @@ const ExplorePage = () => {
       ) : (
         <Stack spacing={3}>
           {filteredEntries.map((entry) => {
-            const displayTags = entry.tags.filter((tag) => !/\.pdf$/i.test(tag.trim()));
+            const visibleTags = filterDocumentTags(entry.tags);
             return (
               <Paper
                 key={entry.id}
@@ -246,16 +248,15 @@ const ExplorePage = () => {
                         flexShrink: 0,
                       }}
                     >
-                      {categoryIconMap[entry.category] ?? <QuizRoundedIcon fontSize="inherit" />}
-                    </Box>
-                    <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
-                        {entry.category}
-                      </Typography>
-                      <Typography variant="h5" sx={{ wordBreak: 'keep-all' }}>
-                        {entry.question}
-                      </Typography>
-                    </Stack>
+                    {categoryIconMap[entry.category] ?? <QuizRoundedIcon fontSize="inherit" />}
+                  </Box>
+                  <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                      {entry.category}
+                    </Typography>
+                    <Typography variant="h5" sx={{ wordBreak: 'keep-all' }}>
+                      {entry.question}
+                    </Typography>
                   </Stack>
                   <Divider />
                   <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}>
@@ -269,9 +270,21 @@ const ExplorePage = () => {
                     </Stack>
                   )}
                 </Stack>
-              </Paper>
-            );
-          })}
+                <Divider />
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}>
+                  {entry.answer}
+                </Typography>
+                {visibleTags.length > 0 && (
+                  <Stack direction="row" flexWrap="wrap" gap={1}>
+                    {visibleTags.map((tag) => (
+                      <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 10 }} />
+                    ))}
+                  </Stack>
+                )}
+              </Stack>
+            </Paper>
+          );
+        })}
         </Stack>
       )}
     </Stack>
