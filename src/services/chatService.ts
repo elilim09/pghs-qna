@@ -26,7 +26,19 @@ interface IndexedEntry {
   normalizedAll: string;
 }
 
-const DEFAULT_API_BASE_URL = '';
+const getDefaultApiBaseUrl = () => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return '';
+  }
+
+  return 'https://student1.1jy2.com';
+};
+
+const DEFAULT_API_BASE_URL = getDefaultApiBaseUrl();
 const apiBaseUrl = (process.env.REACT_APP_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, '');
 const API_ENDPOINT = apiBaseUrl ? `${apiBaseUrl}/api/chat` : '/api/chat';
 
