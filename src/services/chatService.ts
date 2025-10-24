@@ -175,6 +175,21 @@ const summarizeAnswer = (answer: string) => {
   return firstLine.trim();
 };
 
+const stripReferenceFooter = (text: string) => {
+  const normalized = text.replace(/\r\n/g, '\n');
+  const lines = normalized.split('\n');
+  const referenceIndex = lines.findIndex((line) => line.trim().startsWith('참고 문서'));
+
+  if (referenceIndex === -1) {
+    return normalized.trim();
+  }
+
+  return lines
+    .slice(0, referenceIndex)
+    .join('\n')
+    .trim();
+};
+
 const buildLocalReply = (question: string, entries: KnowledgeEntry[]): ChatResponsePayload => {
   if (entries.length === 0) {
     return {
@@ -205,7 +220,7 @@ const buildLocalReply = (question: string, entries: KnowledgeEntry[]): ChatRespo
   sections.push('위 내용은 학교가 공개한 공식 Q&A 자료를 정리한 결과입니다.');
 
   return {
-    reply: sections.join('\n\n'),
+    reply: stripReferenceFooter(sections.join('\n\n')),
     sources: [],
   };
 };
@@ -265,7 +280,7 @@ export const requestChatAnswer = async ({ question, history }: ChatRequestPayloa
     }
 
     return {
-      reply: data.reply.trim(),
+      reply: stripReferenceFooter(data.reply),
       sources: [],   // 아예 비워버리기
     };
   } catch (error) {
