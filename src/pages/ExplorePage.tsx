@@ -64,7 +64,7 @@ function FloatingSearchInput({
     <BottomSearchBar
       value={value}
       onChange={handleChange}
-      placeholder={placeholder ?? '검색어를 입력하거나 태그를 눌러 정보를 찾아보세요'}
+      placeholder={placeholder ?? '검색어를 입력하세요'}
       {...compositionProps}
     />
   );
