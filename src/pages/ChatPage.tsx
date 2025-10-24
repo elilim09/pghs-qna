@@ -65,6 +65,9 @@ function FloatingChatInput({
   );
 }
 
+const sanitizeAssistantReply = (content: string) =>
+  content.replace(/\n*참고 문서:[\s\S]*$/u, '').trimEnd();
+
 const ChatPage = () => {
   const { setFloatingInput } = useOutletContext<LayoutOutletContext>();
 
@@ -89,20 +92,28 @@ const ChatPage = () => {
   }, [isAwaitingReply]);
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const scrollAnchorRef = useRef<HTMLDivElement | null>(null);
+  const scrollToBottom = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+  }, []);
 
-  useEffect(() => {
-    const anchor = scrollAnchorRef.current;
-    if (!anchor) {
+  const scheduleScrollToBottom = useCallback(() => {
+    if (typeof window === 'undefined') {
+      scrollToBottom();
       return;
     }
+    window.requestAnimationFrame(scrollToBottom);
+  }, [scrollToBottom]);
 
-    const frame = requestAnimationFrame(() => {
-      anchor.scrollIntoView({ block: 'end', behavior: 'smooth' });
-    });
-
-    return () => cancelAnimationFrame(frame);
-  }, [messages]);
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      scrollToBottom();
+      return;
+    }
+    const frame = window.requestAnimationFrame(scrollToBottom);
+    return () => window.cancelAnimationFrame(frame);
+  }, [messages, scrollToBottom]);
 
   const sendQuestionToAssistant = useCallback(
     async (history: Message[], question: string, placeholderId: string) => {
@@ -119,13 +130,15 @@ const ChatPage = () => {
 
         const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
+        const sanitizedReply = sanitizeAssistantReply(reply);
         setMessages((prev) =>
           prev.map((message) =>
             message.id === placeholderId
-              ? { ...message, content: reply, timestamp: now }
+              ? { ...message, content: sanitizedReply, timestamp: now }
               : message,
           ),
         );
+        scheduleScrollToBottom();
       } catch (error) {
         const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
         const errorMessage =
@@ -138,11 +151,12 @@ const ChatPage = () => {
             message.id === placeholderId ? { ...message, content: errorMessage, timestamp: now } : message,
           ),
         );
+        scheduleScrollToBottom();
       } finally {
         setIsAwaitingReply(false);
       }
     },
-    [],
+    [scheduleScrollToBottom],
   );
 
   // 플로팅 입력에서 올라오는 "확정 텍스트"만 처리 (타이핑은 플로팅 컴포넌트 내부 상태로만)
@@ -184,10 +198,11 @@ const ChatPage = () => {
       const historyBeforeSend = messagesRef.current;
 
       setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
+      scheduleScrollToBottom();
 
       void sendQuestionToAssistant([...historyBeforeSend, userMessage], trimmed, placeholderId);
     },
-    [sendQuestionToAssistant],
+    [scheduleScrollToBottom, sendQuestionToAssistant],
   );
 
   // ⛳️ 핵심: setFloatingInput는 마운트 시 "단 1회"만 호출하고, 변동 없는 props만 넘긴다.
