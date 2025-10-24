@@ -26,9 +26,9 @@ interface IndexedEntry {
   normalizedAll: string;
 }
 
-const DEFAULT_API_BASE_URL = 'https://student1.1jy2.com/';
+const DEFAULT_API_BASE_URL = '';
 const apiBaseUrl = (process.env.REACT_APP_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, '');
-const API_ENDPOINT = `${apiBaseUrl}/api/chat`;
+const API_ENDPOINT = apiBaseUrl ? `${apiBaseUrl}/api/chat` : '/api/chat';
 
 const SYSTEM_PROMPT = `너는 판교고등학교에 대해 매우 잘 아는 친절한 도우미이며, 학생 혹은 학부모들의 질문에 대한 Q&A를 담당하고 있어. 제공된 학교 공식 문서 발췌 내용만을 근거로 정확하고 도움이 되는 답변을 제공해. 문서에 정보가 없으면 사실대로 모른다고 말하고, 절대로 추측하거나 문서에 없는 내용을 만들어내지 마.`;
 

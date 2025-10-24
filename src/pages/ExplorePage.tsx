@@ -263,14 +263,6 @@ const ExplorePage = () => {
                   {entry.tags.map((tag) => (
                     <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 10 }} />
                   ))}
-                  {entry.sources.map((source) => (
-                    <Chip
-                      key={source}
-                      label={source}
-                      size="small"
-                      sx={{ borderRadius: 10, backgroundColor: 'rgba(37, 99, 235, 0.08)' }}
-                    />
-                  ))}
                 </Stack>
               </Stack>
             </Paper>
