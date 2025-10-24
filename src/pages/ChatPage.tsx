@@ -1,5 +1,5 @@
 // src/pages/ChatPage.tsx
-import { useCallback, useEffect, useRef, useState, ChangeEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, ChangeEvent } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
@@ -7,6 +7,8 @@ import BottomChatInput from '../components/BottomChatInput';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
 import { requestChatAnswer } from '../services/chatService';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -90,13 +92,20 @@ const ChatPage = () => {
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const raf = requestAnimationFrame(() => {
+      container.scrollTo({
+        top: container.scrollHeight,
         behavior: 'smooth',
       });
-    }
+    });
+
+    return () => cancelAnimationFrame(raf);
   }, [messages]);
 
   const sendQuestionToAssistant = useCallback(
@@ -261,10 +270,57 @@ const ChatPage = () => {
                     boxShadow: isUser ? '0 6px 14px rgba(37, 99, 235, 0.25)' : '0 4px 12px rgba(148, 163, 184, 0.18)',
                     maxWidth: '100%',
                     wordBreak: 'break-word',
-                    whiteSpace: 'pre-wrap',
+                    '& p': {
+                      margin: 0,
+                      fontSize: '0.875rem',
+                      lineHeight: 1.6,
+                      '&:not(:last-of-type)': {
+                        marginBottom: 1,
+                      },
+                    },
+                    '& strong': {
+                      fontWeight: 700,
+                    },
+                    '& em': {
+                      fontStyle: 'italic',
+                    },
+                    '& a': {
+                      color: isUser ? 'primary.contrastText' : 'primary.main',
+                      textDecoration: 'underline',
+                      fontWeight: 600,
+                    },
+                    '& code': {
+                      fontFamily: 'Menlo, Monaco, Consolas, "Courier New", monospace',
+                      backgroundColor: isUser ? 'rgba(255, 255, 255, 0.18)' : 'rgba(15, 23, 42, 0.08)',
+                      borderRadius: 1,
+                      padding: '0 4px',
+                      fontSize: '0.8125rem',
+                    },
+                    '& pre': {
+                      margin: 0,
+                      padding: '8px 12px',
+                      backgroundColor: isUser ? 'rgba(255, 255, 255, 0.18)' : 'rgba(15, 23, 42, 0.08)',
+                      borderRadius: 1,
+                      overflowX: 'auto',
+                    },
+                    '& ul, & ol': {
+                      margin: '4px 0',
+                      paddingLeft: '1.25rem',
+                    },
                   }}
                 >
-                  <Typography variant="body2">{message.content}</Typography>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ node, children, ...props }) => (
+                        <a {...props} target="_blank" rel="noreferrer">
+                          {children}
+                        </a>
+                      ),
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
                 </Box>
               </Stack>
             </Stack>
