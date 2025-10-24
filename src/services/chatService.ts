@@ -127,7 +127,7 @@ const buildKnowledgeContext = (entries: KnowledgeEntry[]) => {
   return entries
     .map((entry, index) => {
       const sources = entry.sources.length > 0 ? entry.sources.join(', ') : '출처 정보 없음';
-      return `문서 ${index + 1}: [카테고리] ${entry.category}\n[질문] ${entry.question}\n[답변] ${entry.answer}\n[출처] ${sources}`;
+      return `문서 ${index + 1}: [카테고리] ${entry.category}\n[질문] ${entry.question}\n[답변] ${entry.answer}`;
     })
     .join('\n\n');
 };
