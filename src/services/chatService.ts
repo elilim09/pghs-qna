@@ -206,7 +206,7 @@ const buildLocalReply = (question: string, entries: KnowledgeEntry[]): ChatRespo
 
   return {
     reply: sections.join('\n\n'),
-    sources: uniqueSources(entries),
+    sources: [],
   };
 };
 
