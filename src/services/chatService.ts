@@ -14,7 +14,6 @@ export interface ChatRequestPayload {
 
 export interface ChatResponsePayload {
   reply: string;
-  sources: string[];
 }
 
 interface IndexedEntry {
@@ -44,14 +43,13 @@ const indexedEntries: IndexedEntry[] = knowledgeEntries.map((entry) => {
   const answer = normalize(entry.answer);
   const tags = normalize(entry.tags.join(' '));
   const category = normalize(entry.category);
-  const sources = normalize(entry.sources.join(' '));
   return {
     entry,
     normalizedQuestion: question,
     normalizedAnswer: answer,
     normalizedTags: tags,
     normalizedCategory: category,
-    normalizedAll: normalize(`${entry.question} ${entry.answer} ${entry.category} ${entry.tags.join(' ')} ${entry.sources.join(' ')}`),
+    normalizedAll: normalize(`${entry.question} ${entry.answer} ${entry.category} ${entry.tags.join(' ')}}`),
   };
 });
 
@@ -126,8 +124,7 @@ const buildKnowledgeContext = (entries: KnowledgeEntry[]) => {
 
   return entries
     .map((entry, index) => {
-      const sources = entry.sources.length > 0 ? entry.sources.join(', ') : '출처 정보 없음';
-      return `문서 ${index + 1}: [카테고리] ${entry.category}\n[질문] ${entry.question}\n[답변] ${entry.answer}\n[출처] ${sources}`;
+      return `문서 ${index + 1}: [카테고리] ${entry.category}\n[질문] ${entry.question}\n[답변] ${entry.answer}`;
     })
     .join('\n\n');
 };
@@ -179,12 +176,8 @@ export const requestChatAnswer = async ({ question, history }: ChatRequestPayloa
   if (!data.reply) {
     throw new Error('API 응답에 reply 필드가 없습니다.');
   }
-
-  const sources = relevantEntries.flatMap((entry) => entry.sources);
-
   return {
-    reply: data.reply.trim(),
-    sources,
+    reply: data.reply.trim()
   };
 };
 

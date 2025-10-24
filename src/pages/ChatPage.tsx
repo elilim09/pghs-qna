@@ -107,14 +107,14 @@ const ChatPage = () => {
           (message): message is Message & { role: 'user' | 'assistant' } => message.role !== 'system',
         );
 
-        const { reply, sources } = await requestChatAnswer({
+        const { reply } = await requestChatAnswer({
           question,
           history: filteredHistory.map((message) => ({ role: message.role, content: message.content })),
         });
 
         const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-        const uniqueSources = Array.from(new Set(sources));
-        const sourceText = uniqueSources.length > 0 ? `\n\n참고 문서: ${uniqueSources.join(', ')}` : '';
+       
+        const sourceText = '';
 
         setMessages((prev) =>
           prev.map((message) =>
