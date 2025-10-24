@@ -43,7 +43,7 @@ const BottomChatInput = ({ value, placeholder, onChange, onSend, disabled }: Bot
         value={value}
         onChange={onChange}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder ?? '질문을 입력해 주세요'}
+        placeholder={placeholder ?? '무엇이든 물어보세요'}
         variant="standard"
         multiline
         minRows={1}

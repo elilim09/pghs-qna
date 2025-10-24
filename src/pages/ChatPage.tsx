@@ -59,7 +59,7 @@ function FloatingChatInput({
       onChange={handleChange}
       onSend={handleSend}
       disabled={!canSend}
-      placeholder={placeholder ?? '질문을 입력해 주세요'}
+      placeholder={placeholder ?? '무엇이든 물어보세요'}
       // 아래 props는 BottomChatInput 내부 TextField로 전파될 수 있음
       // (BottomChatInput 구현에 따라 무시될 수도 있지만 문제 없음)
       {...compositionProps}
@@ -74,7 +74,7 @@ const ChatPage = () => {
     {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: '안녕하세요. 판교고 입학 안내 챗봇입니다. 궁금한 내용을 질문해 주세요.',
+      content: '안녕하세요. 판교고 Q&A 챗봇입니다. 궁금한 내용을 질문해 주세요. 【개발 : 자율동아리 "코드 크래프터"】',
       timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -202,7 +202,7 @@ const ChatPage = () => {
       component: FloatingChatInput,
       props: {
         onSendToPage: handleSubmitFromFloating,
-        placeholder: '질문을 입력해 주세요',
+        placeholder: '무엇이든 물어보세요',
       },
     });
     return () => {
