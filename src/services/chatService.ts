@@ -266,7 +266,7 @@ export const requestChatAnswer = async ({ question, history }: ChatRequestPayloa
 
     return {
       reply: data.reply.trim(),
-      sources: uniqueSources(relevantEntries),
+      sources: [],   // 아예 비워버리기
     };
   } catch (error) {
     console.warn('AI API 호출에 실패하여 로컬 지식 베이스로 응답을 생성합니다.', error);
