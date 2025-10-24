@@ -28,6 +28,8 @@ const TAG_ORDER = [
   'ACE특화',
 ];
 
+const filterDocumentTags = (tags: string[]) => tags.filter((tag) => !tag.toLowerCase().includes('.pdf'));
+
 /**
  * 플로팅 영역에 실제로 렌더링될 안전한 검색 입력 래퍼
  * - 내부 state로 value 관리 (부모에서 value를 내려주지 않음)
@@ -214,36 +216,38 @@ const ExplorePage = () => {
         </Paper>
       ) : (
         <Stack spacing={3}>
-          {filteredEntries.map((entry) => (
-            <Paper
-              key={entry.id}
-              elevation={0}
-              sx={{
-                borderRadius: 3,
-                border: '1px solid',
-                borderColor: 'divider',
-                backgroundColor: '#FFFFFF',
-                p: { xs: 3, sm: 4 },
-                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)',
-              }}
-            >
-              <Stack spacing={2.5}>
-                <Stack direction="row" spacing={2} alignItems="flex-start">
-                  <Box
-                    sx={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 16,
-                      backgroundColor: 'rgba(37, 99, 235, 0.12)',
-                      border: '1px solid rgba(37, 99, 235, 0.28)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'primary.main',
-                      fontSize: 26,
-                      flexShrink: 0,
-                    }}
-                  >
+          {filteredEntries.map((entry) => {
+            const visibleTags = filterDocumentTags(entry.tags);
+            return (
+              <Paper
+                key={entry.id}
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: '#FFFFFF',
+                  p: { xs: 3, sm: 4 },
+                  boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)',
+                }}
+              >
+                <Stack spacing={2.5}>
+                  <Stack direction="row" spacing={2} alignItems="flex-start">
+                    <Box
+                      sx={{
+                        width: 52,
+                        height: 52,
+                        borderRadius: 16,
+                        backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                        border: '1px solid rgba(37, 99, 235, 0.28)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'primary.main',
+                        fontSize: 26,
+                        flexShrink: 0,
+                      }}
+                    >
                     {categoryIconMap[entry.category] ?? <QuizRoundedIcon fontSize="inherit" />}
                   </Box>
                   <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
@@ -259,14 +263,17 @@ const ExplorePage = () => {
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}>
                   {entry.answer}
                 </Typography>
-                <Stack direction="row" flexWrap="wrap" gap={1}>
-                  {entry.tags.map((tag) => (
-                    <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 10 }} />
-                  ))}
-                </Stack>
+                {visibleTags.length > 0 && (
+                  <Stack direction="row" flexWrap="wrap" gap={1}>
+                    {visibleTags.map((tag) => (
+                      <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 10 }} />
+                    ))}
+                  </Stack>
+                )}
               </Stack>
             </Paper>
-          ))}
+          );
+        })}
         </Stack>
       )}
     </Stack>
