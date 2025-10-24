@@ -10,3 +10,10 @@ tail -f nohup.out
 
 pkill -f "uvicorn|ngrok"
 
+uvicorn main:app --host 0.0.0.0 --port 8080
+
+
+
+nohup uvicorn main:app --host 0.0.0.0 --port 8000 --log-level info &
+
+

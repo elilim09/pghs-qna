@@ -26,7 +26,7 @@ interface IndexedEntry {
   normalizedAll: string;
 }
 
-const DEFAULT_API_BASE_URL = 'https://student1.1jy2.com/';
+const DEFAULT_API_BASE_URL = 'https://hwanghj09.p-e.kr';
 const apiBaseUrl = (process.env.REACT_APP_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, '');
 const API_ENDPOINT = `${apiBaseUrl}/api/chat`;
 
@@ -161,6 +161,7 @@ export const requestChatAnswer = async ({ question, history }: ChatRequestPayloa
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: JSON.stringify({
       system: SYSTEM_PROMPT,

@@ -7,20 +7,20 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from typing import Optional
 
-# .env 파일 로드
+# -------------------------------
+# 환경변수 로드 및 OpenAI 초기화
+# -------------------------------
 load_dotenv()
-
-# OpenAI 클라이언트 초기화
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
-# 허용할 도메인 리스트
-# 라즈베리파이 공인 IP 또는 연결된 도메인으로 설정
+# -------------------------------
+# CORS 설정: 정확히 허용할 도메인만
+# -------------------------------
 origins = [
-    "http://localhost:3000",            # 로컬 개발
-    "https://pangyo-qna.web.app",       # Firebase Hosting
-    "https://student1.1jy2.com",        # 라즈베리파이 도메인
+    "https://hwanghj09.p-e.kr",        # 배포한 HTTPS 도메인
+    "https://<your-firebase>.web.app"  # Firebase Hosting 도메인
 ]
 
 app.add_middleware(
@@ -31,7 +31,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# -------------------------------
 # CPU 온도 읽기
+# -------------------------------
 def get_cpu_temp():
     try:
         result = subprocess.run(['vcgencmd', 'measure_temp'], capture_output=True, text=True)
@@ -48,14 +50,19 @@ def read_cpu_temp():
         return {"error": "온도 읽기 실패"}
     return {"temperature": temp, "unit": "°C"}
 
+# -------------------------------
 # 채팅 요청 모델
+# -------------------------------
 class ChatRequest(BaseModel):
     message: str
     system: Optional[str] = None
 
+# -------------------------------
+# 채팅 엔드포인트
+# -------------------------------
 @app.post("/api/chat")
 def chat_with_gpt(req: ChatRequest):
-    system_content = req.system or "너는 판교고등학교 QnA 봇이며, 학생 질문에 친절하고 정확하게 답변해."
+    system_content = req.system or "너는 판교고등학교 QnA 봇입니다."
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -64,10 +71,14 @@ def chat_with_gpt(req: ChatRequest):
                 {"role": "user", "content": req.message},
             ],
         )
+        print(response.choices[0].message.content)
         return {"reply": response.choices[0].message.content}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# -------------------------------
+# Health check
+# -------------------------------
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok"}
