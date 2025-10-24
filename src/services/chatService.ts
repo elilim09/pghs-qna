@@ -26,9 +26,18 @@ interface IndexedEntry {
   normalizedAll: string;
 }
 
-const DEFAULT_API_BASE_URL = 'https://student1.1jy2.com/';
-const apiBaseUrl = (process.env.REACT_APP_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, '');
-const API_ENDPOINT = `${apiBaseUrl}/api/chat`;
+const sanitizeBaseUrl = (value: string | undefined | null) => {
+  if (!value) {
+    return '';
+  }
+
+  return value.trim().replace(/\/$/, '');
+};
+
+const DEFAULT_API_BASE_URL = '';
+const apiBaseUrl = sanitizeBaseUrl(process.env.REACT_APP_API_BASE_URL ?? DEFAULT_API_BASE_URL);
+const API_ENDPOINT = apiBaseUrl ? `${apiBaseUrl}/api/chat` : null;
+const SHOULD_USE_REMOTE_API = Boolean(API_ENDPOINT);
 
 const SYSTEM_PROMPT = `너는 판교고등학교에 대해 매우 잘 아는 친절한 도우미이며, 학생 혹은 학부모들의 질문에 대한 Q&A를 담당하고 있어. 제공된 학교 공식 문서 발췌 내용만을 근거로 정확하고 도움이 되는 답변을 제공해. 문서에 정보가 없으면 사실대로 모른다고 말하고, 절대로 추측하거나 문서에 없는 내용을 만들어내지 마.`;
 
@@ -127,7 +136,7 @@ const buildKnowledgeContext = (entries: KnowledgeEntry[]) => {
   return entries
     .map((entry, index) => {
       const sources = entry.sources.length > 0 ? entry.sources.join(', ') : '출처 정보 없음';
-      return `문서 ${index + 1}: [카테고리] ${entry.category}\n[질문] ${entry.question}\n[답변] ${entry.answer}\n[출처] ${sources}`;
+      return `문서 ${index + 1}: [카테고리] ${entry.category}\n[질문] ${entry.question}\n[답변] ${entry.answer}`;
     })
     .join('\n\n');
 };
@@ -144,11 +153,72 @@ const buildConversationSummary = (history: ChatTurn[]) => {
 
 const MAX_HISTORY_TURNS = 6;
 
+const uniqueSources = (entries: KnowledgeEntry[]) => {
+  const seen = new Set<string>();
+  entries.forEach((entry) => {
+    entry.sources.forEach((source) => {
+      if (source) {
+        seen.add(source);
+      }
+    });
+  });
+  return Array.from(seen);
+};
+
+const summarizeAnswer = (answer: string) => {
+  const trimmed = answer.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  const [firstLine] = trimmed.split('\n');
+  return firstLine.trim();
+};
+
+const buildLocalReply = (question: string, entries: KnowledgeEntry[]): ChatResponsePayload => {
+  if (entries.length === 0) {
+    return {
+      reply:
+        '제공된 공식 문서에서 관련 정보를 찾지 못했습니다.\n학교 행정실이나 입학 담당 선생님께 직접 문의해 주세요.',
+      sources: [],
+    };
+  }
+
+  const [primary, ...others] = entries;
+  const sections: string[] = [];
+
+  sections.push(
+    `질문 "${question}"과 가장 가까운 공식 답변입니다:\n${primary.answer.trim()}`,
+  );
+
+  if (others.length > 0) {
+    const bullets = others.map((entry, index) => {
+      const summary = summarizeAnswer(entry.answer);
+      return `${index + 1}. ${entry.question}${summary ? ` — ${summary}` : ''}`;
+    });
+
+    sections.push(
+      ['추가로 참고할 수 있는 관련 문항입니다:'].concat(bullets).join('\n'),
+    );
+  }
+
+  sections.push('위 내용은 학교가 공개한 공식 Q&A 자료를 정리한 결과입니다.');
+
+  return {
+    reply: sections.join('\n\n'),
+    sources: uniqueSources(entries),
+  };
+};
+
 export const requestChatAnswer = async ({ question, history }: ChatRequestPayload): Promise<ChatResponsePayload> => {
   const relevantEntries = selectRelevantEntries(question);
   const knowledgeContext = buildKnowledgeContext(relevantEntries);
   const recentHistory = history.slice(-MAX_HISTORY_TURNS);
   const conversationSummary = buildConversationSummary(recentHistory);
+
+  if (!SHOULD_USE_REMOTE_API || !API_ENDPOINT) {
+    return buildLocalReply(question, relevantEntries);
+  }
 
   const message = [
     `이전 대화 요약:\n${conversationSummary}`,
@@ -157,34 +227,51 @@ export const requestChatAnswer = async ({ question, history }: ChatRequestPayloa
     `사용자 질문:\n${question}`,
   ].join('\n\n');
 
-  const response = await fetch(API_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      system: SYSTEM_PROMPT,
-      message,
-    }),
-  });
+  const endpoint = API_ENDPOINT!;
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`API 요청 실패 (${response.status}): ${errorText}`);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        system: SYSTEM_PROMPT,
+        message,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API 요청 실패 (${response.status}): ${errorText}`);
+    }
+
+    const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
+    const rawBody = await response.text();
+
+    if (!contentType.includes('application/json')) {
+      throw new Error(`API 응답이 JSON이 아닙니다: ${rawBody}`);
+    }
+
+    let data: { reply?: string };
+    try {
+      data = JSON.parse(rawBody) as { reply?: string };
+    } catch (error) {
+      throw new Error(`API 응답 JSON 파싱 실패: ${(error as Error).message} | 원본 응답: ${rawBody}`);
+    }
+
+    if (!data.reply) {
+      throw new Error('API 응답에 reply 필드가 없습니다.');
+    }
+
+    return {
+      reply: data.reply.trim(),
+      sources: uniqueSources(relevantEntries),
+    };
+  } catch (error) {
+    console.warn('AI API 호출에 실패하여 로컬 지식 베이스로 응답을 생성합니다.', error);
+    return buildLocalReply(question, relevantEntries);
   }
-
-  const data = (await response.json()) as { reply?: string };
-
-  if (!data.reply) {
-    throw new Error('API 응답에 reply 필드가 없습니다.');
-  }
-
-  const sources = relevantEntries.flatMap((entry) => entry.sources);
-
-  return {
-    reply: data.reply.trim(),
-    sources,
-  };
 };
 
 export default requestChatAnswer;
