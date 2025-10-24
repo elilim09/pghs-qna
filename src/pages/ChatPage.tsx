@@ -89,14 +89,19 @@ const ChatPage = () => {
   }, [isAwaitingReply]);
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const scrollAnchorRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
+    const anchor = scrollAnchorRef.current;
+    if (!anchor) {
+      return;
     }
+
+    const frame = requestAnimationFrame(() => {
+      anchor.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    });
+
+    return () => cancelAnimationFrame(frame);
   }, [messages]);
 
   const sendQuestionToAssistant = useCallback(
@@ -268,6 +273,7 @@ const ChatPage = () => {
             </Stack>
           );
         })}
+        <Box ref={scrollAnchorRef} sx={{ height: 1 }} />
       </Box>
     </Stack>
   );
