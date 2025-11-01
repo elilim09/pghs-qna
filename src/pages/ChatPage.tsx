@@ -77,6 +77,13 @@ const ChatPage = () => {
       content: '안녕하세요. 판교고 Q&A 챗봇입니다. 궁금한 내용을 질문해 주세요. 【개발 : 자율동아리 "코드 크래프터"】',
       timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
     },
+    {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      content:
+        '현재 OpenAI API 키가 만료되어 챗봇 답변이 제공되지 않습니다. 빠른 시일 내에 서비스를 복구하겠습니다. 이용에 불편을 드려 죄송합니다.',
+      timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+    },
   ]);
 
   const messagesRef = useRef<Message[]>(messages);
