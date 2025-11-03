@@ -64,7 +64,7 @@ function FloatingSearchInput({
     <BottomSearchBar
       value={value}
       onChange={handleChange}
-      placeholder={placeholder ?? '검색어를 입력하거나 태그를 눌러 정보를 찾아보세요'}
+      placeholder={placeholder ?? '검색어를 입력하세요'}
       {...compositionProps}
     />
   );
@@ -262,14 +262,6 @@ const ExplorePage = () => {
                 <Stack direction="row" flexWrap="wrap" gap={1}>
                   {entry.tags.map((tag) => (
                     <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 10 }} />
-                  ))}
-                  {entry.sources.map((source) => (
-                    <Chip
-                      key={source}
-                      label={source}
-                      size="small"
-                      sx={{ borderRadius: 10, backgroundColor: 'rgba(37, 99, 235, 0.08)' }}
-                    />
                   ))}
                 </Stack>
               </Stack>

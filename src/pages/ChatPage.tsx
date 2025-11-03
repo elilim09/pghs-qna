@@ -1,5 +1,5 @@
 // src/pages/ChatPage.tsx
-import { useCallback, useEffect, useRef, useState, ChangeEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, ChangeEvent } from 'react';
 import { Avatar, Box, Stack, Typography } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
@@ -7,6 +7,8 @@ import BottomChatInput from '../components/BottomChatInput';
 import { useOutletContext } from 'react-router-dom';
 import type { LayoutOutletContext } from '../components/Layout';
 import { requestChatAnswer } from '../services/chatService';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -57,7 +59,7 @@ function FloatingChatInput({
       onChange={handleChange}
       onSend={handleSend}
       disabled={!canSend}
-      placeholder={placeholder ?? '질문을 입력해 주세요'}
+      placeholder={placeholder ?? '무엇이든 물어보세요'}
       // 아래 props는 BottomChatInput 내부 TextField로 전파될 수 있음
       // (BottomChatInput 구현에 따라 무시될 수도 있지만 문제 없음)
       {...compositionProps}
@@ -72,7 +74,14 @@ const ChatPage = () => {
     {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: '안녕하세요. 판교고 입학 안내 챗봇입니다. 궁금한 내용을 질문해 주세요.',
+      content: '안녕하세요. 판교고 Q&A 챗봇입니다. 궁금한 내용을 질문해 주세요. 【개발 : 자율동아리 "코드 크래프터"】',
+      timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+    },
+    {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      content:
+        '현재 OpenAI API 키가 만료되어 챗봇 답변이 제공되지 않습니다. 빠른 시일 내에 서비스를 복구하겠습니다. 이용에 불편을 드려 죄송합니다.',
       timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -90,13 +99,20 @@ const ChatPage = () => {
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const raf = requestAnimationFrame(() => {
+      container.scrollTo({
+        top: container.scrollHeight,
         behavior: 'smooth',
       });
-    }
+    });
+
+    return () => cancelAnimationFrame(raf);
   }, [messages]);
 
   const sendQuestionToAssistant = useCallback(
@@ -193,7 +209,7 @@ const ChatPage = () => {
       component: FloatingChatInput,
       props: {
         onSendToPage: handleSubmitFromFloating,
-        placeholder: '질문을 입력해 주세요',
+        placeholder: '무엇이든 물어보세요',
       },
     });
     return () => {
@@ -261,10 +277,57 @@ const ChatPage = () => {
                     boxShadow: isUser ? '0 6px 14px rgba(37, 99, 235, 0.25)' : '0 4px 12px rgba(148, 163, 184, 0.18)',
                     maxWidth: '100%',
                     wordBreak: 'break-word',
-                    whiteSpace: 'pre-wrap',
+                    '& p': {
+                      margin: 0,
+                      fontSize: '0.875rem',
+                      lineHeight: 1.6,
+                      '&:not(:last-of-type)': {
+                        marginBottom: 1,
+                      },
+                    },
+                    '& strong': {
+                      fontWeight: 700,
+                    },
+                    '& em': {
+                      fontStyle: 'italic',
+                    },
+                    '& a': {
+                      color: isUser ? 'primary.contrastText' : 'primary.main',
+                      textDecoration: 'underline',
+                      fontWeight: 600,
+                    },
+                    '& code': {
+                      fontFamily: 'Menlo, Monaco, Consolas, "Courier New", monospace',
+                      backgroundColor: isUser ? 'rgba(255, 255, 255, 0.18)' : 'rgba(15, 23, 42, 0.08)',
+                      borderRadius: 1,
+                      padding: '0 4px',
+                      fontSize: '0.8125rem',
+                    },
+                    '& pre': {
+                      margin: 0,
+                      padding: '8px 12px',
+                      backgroundColor: isUser ? 'rgba(255, 255, 255, 0.18)' : 'rgba(15, 23, 42, 0.08)',
+                      borderRadius: 1,
+                      overflowX: 'auto',
+                    },
+                    '& ul, & ol': {
+                      margin: '4px 0',
+                      paddingLeft: '1.25rem',
+                    },
                   }}
                 >
-                  <Typography variant="body2">{message.content}</Typography>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ node, children, ...props }) => (
+                        <a {...props} target="_blank" rel="noreferrer">
+                          {children}
+                        </a>
+                      ),
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
                 </Box>
               </Stack>
             </Stack>
