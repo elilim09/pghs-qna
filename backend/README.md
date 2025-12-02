@@ -18,5 +18,3 @@ uvicorn main:app --reload
 - `GET /health`: 배포/모니터링을 위한 헬스체크
 - `GET /knowledge`: 정적 지식 항목 예시 반환
 - `POST /chat`: 프론트엔드 연동을 위한 챗봇 응답 형식 예시(에코)
-
-> ⚠️ 현재 API는 목업 데이터만 반환하며, 실제 AI 모델 연동은 추후 구현 예정입니다.
