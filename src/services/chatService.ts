@@ -25,7 +25,7 @@ interface IndexedEntry {
   normalizedAll: string;
 }
 
-const DEFAULT_API_BASE_URL = 'https://hwanghj09.p-e.kr';
+const DEFAULT_API_BASE_URL = 'https://port-0-pghs-server-mjfg3o9ec1e04ea8.sel3.cloudtype.app/';
 const apiBaseUrl = (process.env.REACT_APP_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, '');
 const API_ENDPOINT = `${apiBaseUrl}/api/chat`;
 
