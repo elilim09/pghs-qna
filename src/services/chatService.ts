@@ -150,7 +150,7 @@ export const requestChatAnswer = async ({ question, history }: ChatRequestPayloa
   const message = [
     `이전 대화 요약:\n${conversationSummary}`,
     `학교 공식 문서 발췌:\n${knowledgeContext}`,
-    '답변 지침:\n- 반드시 위 문서 발췌를 근거로만 답변하세요.\n- 문서에 없는 내용은 "제공된 자료에서 관련 정보를 찾지 못했습니다."라고 답하세요.\n- 친절하고 이해하기 쉽게 한국어로 작성하세요.\n- 핵심 정보를 간결하게 정리하고, 필요하면 목록으로 제시하세요.',
+    '답변 지침:\n- 반드시 위 문서 발췌를 근거로만 답변하세요.\n- 문서에 없는 내용은 "공식 문서에서 관련 내용을 찾지 못했습니다."라고 답하세요.\n- 친절하고 이해하기 쉽게 한국어로 작성하세요.\n- 핵심 정보를 간결하게 정리하고, 필요하면 목록으로 제시하세요.',
     `사용자 질문:\n${question}`,
   ].join('\n\n');
 
