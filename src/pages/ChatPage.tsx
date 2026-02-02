@@ -74,7 +74,7 @@ const ChatPage = () => {
     {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: '안녕하세요. 판교고 Q&A 챗봇입니다. 궁금한 내용을 질문해 주세요. 【개발 : 자율동아리 "코드 크래프터"】',
+      content: '안녕하세요. 판교고 Q&A 챗봇입니다. 궁금한 내용을 질문해 주세요. 【zstrit 개발】',
       timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
     }
   ]);
@@ -122,7 +122,7 @@ const ChatPage = () => {
         });
 
         const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-       
+
         const sourceText = '';
 
         setMessages((prev) =>

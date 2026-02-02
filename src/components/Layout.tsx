@@ -77,7 +77,8 @@ const Layout = () => {
         </Box>
         <Box component="footer" sx={{ py: 4, textAlign: 'center', color: 'text.secondary', pb: 10 }}>
           <Typography variant="caption" component="p">
-            © {new Date().getFullYear()} 코드 크래프터. 제공되는 정보는 학교 공식 자료에 기반하였습니다.
+            제공되는 정보는 학교 공식 자료에 기반하였습니다.<br />
+            © {new Date().getFullYear()} Zstrit. All rights reserved.
           </Typography>
         </Box>
         <Box
